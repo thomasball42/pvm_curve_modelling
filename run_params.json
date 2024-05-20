@@ -1,0 +1,32 @@
+{
+  "ModelA": {
+    "model": "Ri_modelA",
+    "Sa": null,
+    "B": null,
+    "Rmax": 0.1,
+    "S": 0.1,
+    "Q": "normal",
+    "num_runs": 1000,
+    "kwargs": {}
+  },
+  "ModelB": {
+    "model": "Ri_modelB",
+    "Sa": null,
+    "B": null,
+    "Rmax": 0.1,
+    "S": 0.1,
+    "Q": "normal",
+    "num_runs": 1000,
+    "kwargs": {}
+  },
+  "ModelCb": {
+    "model": "Ri_modelC",
+    "Sa": 0.5,
+    "B": 10,
+    "Rmax": 0.1,
+    "S": 0.1,
+    "Q": "normal",
+    "num_runs": 1000,
+    "kwargs": {"Rgen_model": "Ri_modelB"}
+  }
+}
