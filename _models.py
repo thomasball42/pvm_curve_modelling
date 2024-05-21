@@ -73,4 +73,9 @@ def Ri_model_LogisticGrowthC(Rmax, species, **kwargs):
     return Rf_prime, Rm_prime
 
 def getB(Rmax, Sa):
-    return (1/Rmax) - (Sa / (np.exp(Rmax) - Sa))
+    B = (1/Rmax) - (Sa / (np.exp(Rmax) - Sa))
+    if np.isinf(B):
+        B = None
+    else: 
+        B = round(B)
+    return B

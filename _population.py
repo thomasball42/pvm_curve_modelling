@@ -12,8 +12,8 @@ Created on Wed May  1 16:52:42 2024
 # Population
 # =============================================================================
 class Population:
-    def __init__(self, K, B, Rmax):
-        self.K, self.B, self.Rmax = K,B,Rmax
+    def __init__(self, K, B, Rmax, Sa):
+        self.K, self.B, self.Rmax, self.Sa = K,B,Rmax,Sa
         self.Km, self.Kf = K/2,K/2
         self.Nm = self.Km
         self.Nf = self.Kf

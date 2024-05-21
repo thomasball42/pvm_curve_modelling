@@ -17,7 +17,7 @@ import _population
 # PARAMS
 # =============================================================================
 
-results_path = "E:\\OneDrive\\OneDrive - University of Cambridge\\Work\\P_curve_shape\\results"
+results_path = "/maps/tsb42/pvm_curve/results"
 num_runs = 10000
 Ks = np.geomspace(1, 20000, num = 150)
 num_years = 100
@@ -33,24 +33,24 @@ Ks = np.unique(np.round(Ks))
 
 # set up some runs
 runs = {
-    "LogGrowthA_PoissonDraw": {
-        "modelR": _models.Ri_model_LogisticGrowthA,
-        "modelN" : _models.Ni_log_poisson,
-        "num_runs": num_runs,
-        "kwargs": {}
-    },
+    # "LogGrowthA_PoissonDraw": {
+    #     "modelR": _models.Ri_model_LogisticGrowthA,
+    #     "modelN" : _models.Ni_log_poisson,
+    #     "num_runs": num_runs,
+    #     "kwargs": {}
+    # },
     # "LogGrowthB_PoissonDraw": {
     #     "modelR": _models.Ri_model_LogisticGrowthB,
     #     "modelN" : _models.Ni_log_poisson,
     #     "num_runs": num_runs,
     #     "kwargs": {}
     # },
-    # "LogGrowthC_PoissonDraw": {
-    #     "modelR": _models.Ri_model_LogisticGrowthC,
-    #     "modelN" : _models.Ni_log_poisson,
-    #     "num_runs": num_runs,
-    #     "kwargs": {}
-    # },
+    "LogGrowthC_PoissonDraw": {
+        "modelR": _models.Ri_model_LogisticGrowthC,
+        "modelN" : _models.Ni_log_poisson,
+        "num_runs": num_runs,
+        "kwargs": {}
+    },
 }
     
 # =============================================================================
@@ -68,16 +68,17 @@ for run_name, run_params in runs.items():
         for r, Rmax in enumerate(Rmax_space):
             if modelR ==_models.Ri_model_LogisticGrowthC:
                 B = _models.getB(Rmax, Sa)
-                if np.isinf(B):
+                if B == None:
                     continue
             else: B = None
             odf = pd.DataFrame()
             run_label = gen_name(run_name, Sa, Rmax)
             q_pars = (0, Sa)
             for k, K in enumerate(Ks):
+                print(f"{run_label}, {k} / {len(Ks)}")
                 extinctions = 0
                 for _ in range(num_runs):
-                    sp = _population.Population(K, B, Rmax)
+                    sp = _population.Population(K, B, Rmax, Sa)
                     for y in years:
                         sp.iterate(modelR, modelN, _models.normal_dist(*q_pars), **kwargs)
                         # record extinction and stop run
