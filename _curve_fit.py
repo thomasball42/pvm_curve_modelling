@@ -35,14 +35,20 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
         alpha_space = np.arange(0.1, 1.1, 0.1)
     k_alpha_space = (x[:, np.newaxis] ** alpha_space.T).T
     maxr = -np.inf
+    a, b, alpha = None, None, None
     for c, col in enumerate(k_alpha_space):
         r, _ = pearsonr(col, y_trans)
+        print(r)
         r = abs(r)
         if r > maxr:
             maxr = r
             a, b = np.polyfit(col, y_trans, 1)
-            alpha = alpha_space[c]      
-    return fit(curve_func, dat_x, dat_y, init_guess = [b, a, alpha])
+            alpha = alpha_space[c]    
+    if a == None:
+        ret = None
+    else:
+        ret = fit(curve_func, dat_x, dat_y, init_guess = [b, a, alpha])
+    return ret
 
         
     
