@@ -8,7 +8,11 @@ Created on Fri May 10 10:55:15 2024
 import numpy as np
 import scipy.optimize
 from scipy.stats import pearsonr
-    
+import sympy as sp
+
+def lin(x, m, c):
+    return m * x + c
+
 def gompertz(x, a, b, c):
     return np.exp(-np.exp(a + b*(x**c)))
 
@@ -38,7 +42,6 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
     a, b, alpha = None, None, None
     for c, col in enumerate(k_alpha_space):
         r, _ = pearsonr(col, y_trans)
-        print(r)
         r = abs(r)
         if r > maxr:
             maxr = r
@@ -50,5 +53,16 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
         ret = fit(curve_func, dat_x, dat_y, init_guess = [b, a, alpha])
     return ret
 
+def gomp_inflection(params, x_vals):
+    """ This doesn't appear to work properly """
+    _ = sp.symbols("_")
+    a, b, alpha = sp.symbols("a b alpha")
+    func = sp.exp(-sp.exp(a + b*(_**alpha)))
+    dfunc = sp.diff(func, _)
+    ddfunc = sp.diff(dfunc, _)
+    pdict = {j : params[i] for i,j in enumerate(["a", "b","alpha"])}
+    root = sp.nsolve(ddfunc.subs(pdict), _, x_vals[len(x_vals) / 2])
+    return np.float32(root)
+    
         
     
