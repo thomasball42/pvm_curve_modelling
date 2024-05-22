@@ -17,7 +17,8 @@ import _population
 # PARAMS
 # =============================================================================
 
-results_path = "/maps/tsb42/pvm_curve/results"
+results_path = ""
+
 num_runs = 10000
 Ks = np.geomspace(1, 20000, num = 150)
 num_years = 100
@@ -52,6 +53,13 @@ runs = {
         "kwargs": {}
     },
 }
+   
+# check that the results path exists:
+try:
+    assert os.path.isdir(results_path)
+except AssertionError:
+    print("results_path must be a valid directory")
+    quit()
     
 # =============================================================================
 # Main
