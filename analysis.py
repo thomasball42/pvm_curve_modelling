@@ -8,21 +8,19 @@ Created on Wed May 22 13:55:22 2024
 import os
 import pandas as pd
 import numpy as np
+import scipy.stats
 
 import matplotlib.pyplot as plt
-# import matplotlib.ticker
-
-# from mpl_toolkits.mplot3d import Axes3D
-# from sklearn.linear_model import LinearRegression
-# from sklearn.metrics import r2_score
-
-import scipy.optimize
+from scipy.stats import gaussian_kde as kde
+from mpl_toolkits.mplot3d import Axes3D
+from scipy.interpolate import griddata
 
 import _curve_fit
 
-od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
+# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
+od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\results")
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\results_0_09")
 
 # =============================================================================
 # Load data
@@ -39,22 +37,25 @@ for file in f:
     model = runName.split("_")[0]
     sa = dat.Sa.unique().item()
     rmax = dat.Rmax.unique().item()
+    B = dat.B.unique().item()
     x = dat.K
     y = dat.P
     func = _curve_fit.gompertz
     try:
-        params, y_predicted, R2, RSS = _curve_fit.betterfit_gompertz(func, x, y)
+        params, y_predicted, R2, RSS = _curve_fit.betterfit_gompertz(func, x, y, 
+                                     alpha_space = np.arange(0, 2, 0.1))
     except RuntimeError: 
-        params, y_predicted, R2, RSS = (None, None, None, None)
-    ddf.loc[len(ddf), ["runName", "model", "rmax", "sa", "param_a", "param_b", 
-                      "param_alpha", "R2"]  ] = [runName, model, rmax, sa, *params,
+        params, R2 = (np.nan, np.nan, np.nan), np.nan
+        
+    ddf.loc[len(ddf), ["runName", "model", "rmax", "sa", "B", "param_a", "param_b", 
+                      "param_alpha", "R2"]  ] = [runName, model, rmax, sa, B, *params,
                                                  R2]
 
     
 #%% ===========================================================================
 # do some analysing
 # =============================================================================
-for model in ddf.model.unique():
+for model in ddf.model.unique()[2:]:
     
     df = ddf[ddf.model == model]
     
@@ -81,10 +82,108 @@ for model in ddf.model.unique():
     fig.tight_layout()
     
     
+#%% =============================================================================
+# def gaussianKernelDensity(x, y, z, density):
+#     x = x[~np.isnan(z)]
+#     y = y[~np.isnan(z)]
+#     z = z[~np.isnan(z)]
     
+#     pdf = kde(np.vstack([x, y]), weights = z)
+#     xg, yg = np.meshgrid(np.linspace(x.min(),x.max(),density),
+#                           np.linspace(y.min(),y.max(),density))
+#     kz = pdf(np.vstack([xg.flatten(), yg.flatten()]))
+#     zg = kz.reshape(xg.shape)
+    
+    
+#     return xg, yg, zg, pdf
+
+# def predict_z(pdf, x_val, y_val):
+#     # Evaluate the pdf at the given (x, y) point
+#     z_pred = pdf(np.vstack([x_val, y_val]))
+#     return z_pred
+
+# for model in ddf.model.unique()[:1]:
+    
+#     df = ddf[ddf.model == model]
+    
+#     input_params = df[['rmax', 'sa']]
+#     model_params = df[['param_a', 'param_b', 'param_alpha']]
+    
+#     fig = plt.figure() 
+    
+#     for m, mp in enumerate(model_params):
         
+#         ax = fig.add_subplot(1, len(model_params.columns), m+1, projection='3d')
+
+#         x, y = input_params.values.T 
+#         z = np.array(df[mp])
+        
+#         xg, yg, zg, pdf = gaussianKernelDensity(x, y, z, 17)
+        
+#         ax.scatter(x, y, z, alpha = 0.7, s = 40)
+#         ax.set_title(mp)
+#         ax.plot_surface(xg, yg, zg)
+#         ax.set_xlabel(input_params.columns[0])
+#         ax.set_ylabel(input_params.columns[1])
+        
+#     fig.set_size_inches(8, 6)
+#     fig.suptitle(f"Model '{model}'", fontsize=14)
+#     fig.tight_layout()
 
 
+#%%
+
+density = 30
+
+def interpolateZ(x, y, z, density):
+    x = x[~np.isnan(z)]
+    y = y[~np.isnan(z)]
+    z = z[~np.isnan(z)]
+    xg, yg = np.meshgrid(np.linspace(x.min(), x.max(), density), 
+                         np.linspace(y.min(), y.max(), density))
+    zg = griddata((x, y), z, (xg, yg), method='cubic')
+    return xg, yg, zg
+
+def predict_z(x, y, z, x_val, y_val, method='cubic'):
+    x = x[~np.isnan(z)]
+    y = y[~np.isnan(z)]
+    z = z[~np.isnan(z)]
+    z_pred = griddata((x, y), z, (x_val, y_val), method=method)
+    return z_pred
+
+for model in ddf.model.unique():
+    
+    df = ddf[ddf.model == model]
+    
+    input_params = df[['rmax', 'sa']]
+    model_params = df[['param_a', 'param_b', 'param_alpha']]
+    
+    fig = plt.figure()
+    
+    for m, mp in enumerate(model_params):
+        
+        ax = fig.add_subplot(1, len(model_params.columns), m+1, projection='3d')
+
+        x, y = input_params.values.T
+        z = np.array(df[mp])
+        
+        xg, yg, zg = interpolateZ(x, y, z, density)
+        
+        ax.scatter(x, y, z, alpha=0.7, s=40)
+        ax.set_title(mp)
+        ax.plot_surface(xg, yg, zg, cmap='viridis', alpha=0.5)
+        ax.set_xlabel(input_params.columns[0])
+        ax.set_ylabel(input_params.columns[1])
+        ax.set_zlabel(mp)
+        
+    fig.set_size_inches(8, 6)
+    fig.suptitle(f"Model '{model}'", fontsize=14)
+    # fig.tight_layout()
+    plt.show()
+
+#%%
+
+import numpy.linalg as lg 
 
 
-
+    

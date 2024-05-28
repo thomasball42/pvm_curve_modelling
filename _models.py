@@ -11,14 +11,14 @@ import numpy as np
 def normal_dist(loc, S):
     return np.random.normal(loc=loc, scale=S, size=None)    
 
-def poisson_dist(lam):
+def poisson_dist(lam): 
     return np.random.poisson(lam)
 
-def Ni_log_floor(Ni, Ri, K, Q):
+def Ni_log_floor(Ni, Ri, K, Q): ## NOT USED
     newN = Ni * np.exp(Ri + Q)
-    return math.floor(newN) # ROUND DOWN - check this!
+    return math.floor(newN)
 
-def Ni_log_capped(Ni, Ri, K, Q):
+def Ni_log_capped(Ni, Ri, K, Q): ## NOT USED
     newN = Ni * np.exp(Ri + Q)
     if newN > K: newN = K
     return math.floor(newN)
@@ -32,7 +32,7 @@ def Ni_log_poisson(Ni, Ri, K, Q):
         newNp = None
     return newNp 
 
-def Ni_log_realnums(Ni, Ri, K, Q):
+def Ni_log_realnums(Ni, Ri, K, Q): ## NOT USED
         newN = Ni * np.exp(Ri + Q)
         return newN
         
@@ -55,6 +55,7 @@ def Ri_model_LogisticGrowthB(Rmax, species, **kwargs):
     return Rf, Rm
 
 def Ri_model_LogisticGrowthC(Rmax, species, **kwargs):
+    """ Model 'C' in Rhys' doc, includes a time to maturity (I think..) """
     Sa, B = species.Sa,species.B
     if len(species.Nm_hist) > B:
         fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],

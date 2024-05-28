@@ -17,7 +17,7 @@ import _population
 # PARAMS
 # =============================================================================
 
-results_path = ""
+results_path = "/maps/tsb42/pvm_curve/results_0_09"
 
 num_runs = 10000
 Ks = np.geomspace(1, 20000, num = 150)
