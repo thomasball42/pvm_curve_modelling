@@ -8,7 +8,6 @@ Created on Fri May 10 10:55:15 2024
 import numpy as np
 import scipy.optimize
 from scipy.stats import pearsonr
-import sympy as sp
 
 def lin(x, m, c):
     return m * x + c
@@ -52,17 +51,3 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
     else:
         ret = fit(curve_func, dat_x, dat_y, init_guess = [b, a, alpha])
     return ret
-
-def gomp_inflection(params, x_vals):
-    """ This doesn't appear to work properly """
-    _ = sp.symbols("_")
-    a, b, alpha = sp.symbols("a b alpha")
-    func = sp.exp(-sp.exp(a + b*(_**alpha)))
-    dfunc = sp.diff(func, _)
-    ddfunc = sp.diff(dfunc, _)
-    pdict = {j : params[i] for i,j in enumerate(["a", "b","alpha"])}
-    root = sp.nsolve(ddfunc.subs(pdict), _, x_vals[len(x_vals) / 2])
-    return np.float32(root)
-    
-        
-    
