@@ -30,12 +30,13 @@ for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
 f = [file for file in f if ".csv" in file]
+
 ddf = pd.DataFrame()
 for file in f:
     dat = pd.read_csv(file, index_col = 0)
     runName = dat.runName.unique().item()
     model = runName.split("_")[0]
-    sa = dat.Sa.unique().item()
+    S = dat.S.unique().item()
     rmax = dat.Rmax.unique().item()
     B = dat.B.unique().item()
     x = dat.K
@@ -47,8 +48,8 @@ for file in f:
     except RuntimeError: 
         params, R2 = (np.nan, np.nan, np.nan), np.nan
         
-    ddf.loc[len(ddf), ["runName", "model", "rmax", "sa", "B", "param_a", "param_b", 
-                      "param_alpha", "R2"]  ] = [runName, model, rmax, sa, B, *params,
+    ddf.loc[len(ddf), ["runName", "model", "rmax", "S", "B", "param_a", "param_b", 
+                      "param_alpha", "R2"]  ] = [runName, model, rmax, S, B, *params,
                                                  R2]
 
     
@@ -59,7 +60,7 @@ for model in ddf.model.unique()[2:]:
     
     df = ddf[ddf.model == model]
     
-    input_params = df[['rmax', 'sa']]
+    input_params = df[['rmax', 'S']]
     model_params = df[['param_a', 'param_b', 'param_alpha']]
     
     fig, axs = plt.subplots(len(input_params.T), len(model_params.T))
@@ -106,7 +107,7 @@ for model in ddf.model.unique()[2:]:
     
 #     df = ddf[ddf.model == model]
     
-#     input_params = df[['rmax', 'sa']]
+#     input_params = df[['rmax', 'S']]
 #     model_params = df[['param_a', 'param_b', 'param_alpha']]
     
 #     fig = plt.figure() 
@@ -155,7 +156,7 @@ for model in ddf.model.unique():
     
     df = ddf[ddf.model == model]
     
-    input_params = df[['rmax', 'sa']]
+    input_params = df[['rmax', 'S']]
     model_params = df[['param_a', 'param_b', 'param_alpha']]
     
     fig = plt.figure()
@@ -185,5 +186,33 @@ for model in ddf.model.unique():
 
 import numpy.linalg as lg 
 
+def fit_surface(x, y, z):
+    
+    def design_mat(x, y, order):
+        A = np.zeros((x.size, (order + 1) * (order + 2) // 2))
+        index = 0
+        for i in range(order + 1):
+            for j in range(order + 1 - i):
+                A[:, index] = (x ** i) * (y ** j)
+                index += 1
+        return A
+    
+    A = design_mat(x, y, 3)
 
     
+    
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+

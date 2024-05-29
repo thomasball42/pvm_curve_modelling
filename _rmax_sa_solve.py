@@ -6,43 +6,43 @@ Created on Thu May  2 10:22:16 2024
 """
 import numpy as np
 
-def funcR(R, S, B):
-    return 1 / (B + (S / (np.exp(R) - S)))
+def funcR(R, Sa, B):
+    return 1 / (B + (Sa / (np.exp(R) - Sa)))
 
-def funcS(R, S, B):
-    return ((1/R) - B) * (np.exp(R) - S)
+def funcSa(R, Sa, B):
+    return ((1/R) - B) * (np.exp(R) - Sa)
 
-def funcB(R, S, B):
-    return (1/R) - (S / (np.exp(R) - S))
+def funcB(R, Sa, B):
+    return (1/R) - (Sa / (np.exp(R) - Sa))
 
-def solve(sub, R0, S0, B0, tolerance = 1E-6, max_iter = 100):
+def solve(sub, R0, Sa0, B0, tolerance = 1E-6, max_iter = 100):
     if sub == "R":
         func = funcR
-        R, S, B = R0,S0,B0
+        R, Sa, B = R0,Sa0,B0
         for _ in range(max_iter):
-            R1 = func(R, S, B)
+            R1 = func(R, Sa, B)
             if abs(R1 - R) < tolerance:
-                return R, S, B
+                return R, Sa, B
             else:
                 R = R1
             print(R)
-    if sub == "S":
-        func = funcS
-        R, S, B = R0,S0,B0
+    if sub == "Sa":
+        func = funcSa
+        R, Sa, B = R0,Sa0,B0
         for _ in range(max_iter):
-            S1 = func(R, S, B)
-            if abs(S1 - S) < tolerance:
-                return R, S, B
+            Sa1 = func(R, Sa, B)
+            if abs(Sa1 - Sa) < tolerance:
+                return R, Sa, B
             else:
-                S = S1
-            print(S)
+                Sa = Sa1
+            print(Sa)
     if sub == "B":
         func = funcB
-        R, S, B = R0,S0,B0
+        R, Sa, B = R0,Sa0,B0
         for _ in range(max_iter):
-            B1 = func(R, S, B)
+            B1 = func(R, Sa, B)
             if abs(B1 - B) < tolerance:
-                return R, S, B
+                return R, Sa, B
             else:
                 B = B1
             print(B)
