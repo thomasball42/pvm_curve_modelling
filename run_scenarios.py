@@ -12,10 +12,6 @@ import os
 import _models
 import _population
 
-import matplotlib.pyplot as plt
-import _curve_fit
-import matplotlib.ticker
-
 # =============================================================================
 # PARAMS
 # =============================================================================
