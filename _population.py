@@ -36,11 +36,11 @@ class Population:
         if isinstance(newNf, type(None)) or isinstance(newNm, type(None)):
             if newNf == None or newNm == None:
                 self.RUNABORT = True
-                # self.Nm, self.Nf = 0, 0
         else:
             if newNf < 1 or newNm < 1:
                 self.EXTANT = False
             else:
                 self.Nf, self.Nm = newNf, newNm
+                
             
         
