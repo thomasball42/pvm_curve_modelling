@@ -62,7 +62,7 @@ def Ri_model_C(Rmax, species, **kwargs):
     if "Rgen_model" in kwargs.keys():
         Rgen_model = kwargs["Rgen_model"]
     else:
-        Rgen_model = Ri_model_GompertzGrowthA
+        Rgen_model = Ri_model_A
     Rf, Rm = Rgen_model(Rmax, species)
     def Rprime(R, fecundity):
         return np.log(Sa + ((np.exp(R) - Sa)*fecundity))
