@@ -42,17 +42,17 @@ def Ni_log(Ni, Ri, K, Q):
 # =============================================================================
 # growth rates
 # =============================================================================
-def Ri_model_GompertzGrowthA(Rmax, species, **kwargs):
+def Ri_model_A(Rmax, species, **kwargs):
     Rm = Rmax * (1-species.Nm / species.Km)
     Rf = Rmax * (1-species.Nf / species.Kf)
     return Rf, Rm
 
-def Ri_model_GompertzGrowthB(Rmax, species, **kwargs):
+def Ri_model_B(Rmax, species, **kwargs):
     Rm = Rmax * (1 - ((species.Nm+species.Nf)/(species.Km+species.Kf)))
     Rf = Rmax * (1 - ((species.Nm+species.Nf)/(species.Km+species.Kf)))
     return Rf, Rm
 
-def Ri_model_GompertzGrowthC(Rmax, species, **kwargs):
+def Ri_model_C(Rmax, species, **kwargs):
     Sa, B = species.Sa,species.B
     if len(species.Nm_hist) > B:
         fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
