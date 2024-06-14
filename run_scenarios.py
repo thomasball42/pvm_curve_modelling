@@ -13,10 +13,11 @@ import sys
 import _models
 import _population
 
-from concurrent.futures import ProcessPoolExecutor
+from tqdm import tqdm
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
-NUM_WORKERS = 1
-multi = False
+NUM_WORKERS = 80
+multi = True
 
 # =============================================================================
 # PARAMS
@@ -92,7 +93,8 @@ def simulate(run_name, run_params, Q, Rmax, Sa):
     run_label = gen_name(run_name, Q, Sa, Rmax)
     q_pars = (0, Q)
     for k, K in enumerate(Ks):
-        print(f"{run_label}, {k} / {len(Ks)}")
+        if not multi:
+            print(f"{run_label}, {k} / {len(Ks)}")
         extinctions = 0
         run_counter = 0
         for _ in range(num_runs):
@@ -118,17 +120,21 @@ def simulate(run_name, run_params, Q, Rmax, Sa):
 # run sims
 if __name__ == '__main__':
     if multi:
+        tasks = len(runs) * len(Q_space) * len(Rmax_space) * len(Sa_space)
+        
         with ProcessPoolExecutor(max_workers=NUM_WORKERS) as executor:
             futures = []
-            for run_name, run_params in runs.items():
-                for Q in Q_space:
-                    for Rmax in Rmax_space:
-                        SA_ITERATOR = Sa_space if run_params["modelR"] == _models.Ri_model_C else [None]
-                        for Sa in SA_ITERATOR:
-                            futures.append(executor.submit(simulate, run_name, run_params, Q, Rmax, Sa))
-        
-            for future in futures:
-                future.result()  
+            with tqdm(total=tasks) as progressor:
+                for run_name, run_params in runs.items():
+                    for Q in Q_space:
+                        for Rmax in Rmax_space:
+                            SA_ITERATOR = Sa_space if run_params["modelR"] == _models.Ri_model_C else [None]
+                            for Sa in SA_ITERATOR:
+                                futures.append(executor.submit(simulate, run_name, run_params, Q, Rmax, Sa))
+            
+                for future in as_completed(futures):
+                    future.result()  # This will raise exceptions if any occurred in the process
+                    progressor.update(1)
     else:
         for run_name, run_params in runs.items():
             for Q in Q_space:
