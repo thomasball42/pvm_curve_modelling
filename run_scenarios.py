@@ -35,19 +35,19 @@ Ks = np.unique(np.round(Ks))
 # set up some runs
 runs = {
     "LogGrowthA": {
-        "modelR": _models.Ri_model_GompertzGrowthA,
+        "modelR": _models.Ri_model_A,
         "modelN" : _models.Ni_log,
         "num_runs": num_runs,
         "kwargs": {}
     },
     "LogGrowthB": {
-        "modelR": _models.Ri_model_GompertzGrowthB,
+        "modelR": _models.Ri_model_B,
         "modelN" : _models.Ni_log,
         "num_runs": num_runs,
         "kwargs": {}
     },
     "LogGrowthC": {
-        "modelR": _models.Ri_model_GompertzGrowthC,
+        "modelR": _models.Ri_model_C,
         "modelN" : _models.Ni_log,
         "num_runs": num_runs,
         "kwargs": {}
