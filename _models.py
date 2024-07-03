@@ -43,8 +43,8 @@ def Ni_log(Ni, Ri, K, Q):
 # growth rates
 # =============================================================================
 def Ri_model_A(Rmax, species, **kwargs):
-    Rm = Rmax * (1-species.Nm / species.Km)
-    Rf = Rmax * (1-species.Nf / species.Kf)
+    Rm = Rmax * (1-(species.Nm / species.Km))
+    Rf = Rmax * (1-(species.Nf / species.Kf))
     return Rf, Rm
 
 def Ri_model_B(Rmax, species, **kwargs):

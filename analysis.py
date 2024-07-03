@@ -18,12 +18,14 @@ from scipy.interpolate import griddata
 
 import _curve_fit
 
-plot_curves = True
+plot_curves = False
 
-# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
+r_threshold = 0.9999
 
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\results_form_test")
+od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
+# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
+
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results_log_ABC")
 
 # =============================================================================
 # Load data
@@ -42,9 +44,8 @@ fig, ax = plt.subplots()
 fx = []
 fy = []
 
-for file in f:
+for file in f[10:15]:
     dat = pd.read_csv(file, index_col = 0)
-  
     runName = dat.runName.unique().item()
     model = runName.split("_")[0]
     Q = dat.Q.unique().item()
@@ -57,29 +58,117 @@ for file in f:
     except AttributeError:
         Sa = None
         
+        
     func = _curve_fit.gompertz
     param_names = ("param_a", "param_b", "param_alpha")
-    try:
-        params, y_predicted, R2 = _curve_fit.betterfit_gompertz(func, x, y, 
-                                      alpha_space = np.arange(0, 5, 0.05))
-    except RuntimeError: 
-        params, R2 = (np.nan, np.nan, np.nan), np.nan
+    ret = _curve_fit.betterfit_gompertz(func, x, y, 
+                            alpha_space = np.arange(0, 5, 0.05), 
+                            plot_lins=False,
+                            ylim=(0,1))
+    
+    if ret == None:
+        ret = _curve_fit.betterfit_gompertz(func, x, y, 
+                                alpha_space = np.arange(0, 10, 0.01),
+                                ylim=(0.2, 0.8),
+                                plot_lins=True)
         
+        
+    if ret == "MARK":
+        print(runName)
+    
+    
+    if ret != None and not ret == "MARK":    
+        params, y_predicted, R2 = ret
+    else:
+        params, R2 = tuple([np.nan for _ in param_names]), np.nan
+            
     ddf.loc[len(ddf), ["model", "rmax", "Q", "B", "Sa", 
                         *param_names, "R2"]] = [
                         model, rmax, Q, B, Sa, 
                         *params, R2]
+                            
+    # func = _curve_fit.weibull
+    # param_names = ("param_lam", "param_k", "param_gam")
+    # lam_space = np.linspace(0, 100, 20)
+    # k_space = np.linspace(0.5, 5, 20)
+    # gam_space = np.linspace(0, 100, 20)
+    # try:
+    #     params, y_predicted, R2 = _curve_fit.betterfit_weibull(func, x, y,
+    #                                                             lam_space=lam_space,
+    #                                                             k_space=k_space,
+    #                                                             gam_space=gam_space,
+    #                                                             plot_lins = False)
+    # except RuntimeError:
+    #     params, R2 = (np.nan, np.nan, np.nan), np.nan
+    # ddf.loc[len(ddf), ["model", "rmax", "Q", "B", "Sa", 
+    #                     *param_names, "R2"]] = [
+    #                     model, rmax, Q, B, Sa, 
+    #                     *params, R2]
     
-    if plot_curves:
+                            
+    # func = _curve_fit.stretched_exp
+    # param_names = ("param_a", "param_b", "param_c")
+    # a_space = np.linspace(0, 100, 20)
+    # b_space = np.linspace(-5, 0.5, 20)
+    # c_space = np.linspace(0, 100, 20)
+    # try:
+    #     params, y_predicted, R2 = _curve_fit.betterfit_stretched_exp(func, x, y,
+    #                                                                   a_space=a_space,
+    #                                                                   b_space=b_space,
+    #                                                                   c_space=c_space)
+    # except RuntimeError:
+    #     params, R2 = (np.nan, np.nan, np.nan), np.nan   
+    # ddf.loc[len(ddf), ["model", "rmax", "Q", "B", "Sa", 
+    #                     *param_names, "R2"]] = [
+    #                     model, rmax, Q, B, Sa, 
+    #                     *params, R2]
+    
+    # func = _curve_fit.DR_eq2
+    # param_names = ("param_a", "param_b", "param_c")
+    # a_space = np.linspace(-5000, 40000, 50)
+    # b_space = np.linspace(-50, 50, 100)
+    # c_space = np.linspace(0, 4, 10)
+    # try:
+    #     params, y_predicted, R2 = _curve_fit.fitDR_curves(func, x, y,
+    #                                                                   a_space=a_space,
+    #                                                                   b_space=b_space,
+    #                                                                   c_space=c_space,
+    #                                                                   plot_lins=False)
+    # except RuntimeError:
+    #     params, R2 = (np.nan for p in param_names), np.nan   
+    # ddf.loc[len(ddf), ["model", "rmax", "Q", "B", "Sa", 
+    #                     *param_names, "R2"]] = [
+    #                     model, rmax, Q, B, Sa, 
+    #                     *params, R2]
+    
+    # func = _curve_fit.DR_eq3
+    # param_names = ("param_a",)
+    # a_space = np.linspace(-10, 100, 500)
+    # try:
+    #     params, y_predicted, R2 = _curve_fit.fitDR_curves_3(func, x, y,
+    #                                                                   a_space=a_space,
+    #                                                                   plot_lins=False)
+    # except RuntimeError:
+    #     params, R2 = np.nan, np.nan 
+        
+    # ddf.loc[len(ddf), ["model", "rmax", "Q", "B", "Sa", 
+    #                     *param_names, "R2"]] = [
+    #                     model, rmax, Q, B, Sa, 
+    #                     *params, R2]
+    
+                            
+    if plot_curves and np.isnan(R2):
         fx.append(x)
         fy.append(y)
         ax.scatter(x, y)
         xff = np.linspace(dat.K.min(), dat.K.max(), num = 10000)
         scatter_color = ax.collections[-1].get_facecolor()
-        ax.plot(xff, func(xff, *params), color = scatter_color)  
+        ax.plot(xff, func(xff, *params), color = scatter_color)
         ax.set_xscale("log", base = 2)
         ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax.legend()
+    
+    # print(len(ddf[~np.isnan(ddf.R2)]), len(ddf))
         
 #%% ===========================================================================
 # # do some analysing
@@ -160,7 +249,7 @@ for file in f:
 # #     fig.tight_layout()
 
 
-# #%%
+#%%
 
 # density = 30
 
@@ -210,22 +299,22 @@ for file in f:
 #     # fig.tight_layout()
 #     plt.show()
 
-# #%%
+# # #%%
 
-# # import numpy.linalg as lg 
+# # # import numpy.linalg as lg 
 
-# # def fit_surface(x, y, z):
+# # # def fit_surface(x, y, z):
     
-# #     def design_mat(x, y, order):
-# #         A = np.zeros((x.size, (order + 1) * (order + 2) // 2))
-# #         index = 0
-# #         for i in range(order + 1):
-# #             for j in range(order + 1 - i):
-# #                 A[:, index] = (x ** i) * (y ** j)
-# #                 index += 1
-# #         return A
+# # #     def design_mat(x, y, order):
+# # #         A = np.zeros((x.size, (order + 1) * (order + 2) // 2))
+# # #         index = 0
+# # #         for i in range(order + 1):
+# # #             for j in range(order + 1 - i):
+# # #                 A[:, index] = (x ** i) * (y ** j)
+# # #                 index += 1
+# # #         return A
     
-# #     A = design_mat(x, y, 3)
+# # #     A = design_mat(x, y, 3)
 
     
     
