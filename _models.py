@@ -57,6 +57,7 @@ def Ri_model_C(Rmax, species, **kwargs):
     if len(species.Nm_hist) > B:
         fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
                                     species.Nf_hist[-B+1]/species.Nm_hist[-B+1]]).min()
+        
     else:
         fecundity_factor = 1
     if "Rgen_model" in kwargs.keys():
@@ -65,7 +66,9 @@ def Ri_model_C(Rmax, species, **kwargs):
         Rgen_model = Ri_model_A
     Rf, Rm = Rgen_model(Rmax, species)
     def Rprime(R, fecundity):
-        return np.log(Sa + ((np.exp(R) - Sa)*fecundity))
+        with np.errstate(divide='ignore'):
+            result = np.log(Sa + ((np.exp(R) - Sa) * fecundity))
+        return result
     Rf_prime = Rprime(Rf, fecundity_factor)
     Rm_prime = Rprime(Rm, fecundity_factor)
     return Rf_prime, Rm_prime

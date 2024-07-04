@@ -16,7 +16,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 NUM_WORKERS = 80
-multi = False
+multi = True
 
 # =============================================================================
 # PARAMS
@@ -34,7 +34,7 @@ num_years = 100
 
 Q_space = [0.15]
 Rmax_space = [0.56]
-Sa_space = [0.75]
+Sa_space = [0.65]
 
 N0_space = [100, 1000, 10000]
 
@@ -89,7 +89,6 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
     modelN = run_params["modelN"]
     num_runs = run_params["num_runs"]
     kwargs = run_params["kwargs"]
-    global odf
     odf = pd.DataFrame()
     if modelR == _models.Ri_model_C:
         B = _models.getB(Rmax, Sa)
@@ -114,7 +113,6 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
                     break
                 if sp.RUNABORT:
                     break
-
             if sp.EXTANT and not sp.RUNABORT:
                 extinctions += 0
                 run_counter += 1
