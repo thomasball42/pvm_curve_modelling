@@ -15,6 +15,7 @@ import _population
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
+overwrite = False
 NUM_WORKERS = 80
 multi = True
 
@@ -95,6 +96,9 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
     else:
         B = None
     run_label = gen_name(run_name, Q, Sa, Rmax, N0)
+    run_path = os.path.join(results_path, run_label + ".csv")
+    if os.path.isfile(run_path) and not overwrite:
+        pass
     q_pars = (0, Q)
     for k, K in enumerate(Ks):
         N0 = K # MIGHT WANT TO CHANGE THIS
@@ -123,7 +127,7 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
             P = 1 - extinctions / run_counter
             odf.loc[len(odf), ["runName", "K", "B", "Q", "Rmax", "N", "P", "Sa", "N0", "mTTE"]] = [
                 run_label, K, B, Q, Rmax, num_runs, P, Sa, N0, mTTE]
-    odf.to_csv(os.path.join(results_path, run_label + ".csv"))
+    odf.to_csv(run_path)
     
 # run sims
 if __name__ == '__main__':
