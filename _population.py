@@ -39,6 +39,7 @@ class Population:
         else:
             if newNf < 1 or newNm < 1:
                 self.EXTANT = False
+                self.Nf, self.Nm = newNf, newNm
             else:
                 self.Nf, self.Nm = newNf, newNm
                 

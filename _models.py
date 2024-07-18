@@ -39,9 +39,26 @@ def Ni_log(Ni, Ri, K, Q):
     newNp = poisson_dist(newN)
     return newNp
 
+def Ni_realnum_intuit(Ni, Ri, K,  Q):
+    newN = Ni + (Ni * Ri) + (Ni * Q)
+    # if np.isinf(newN):
+    #     newN = 0
+    # newN = round(newN)
+    return newN
+    
 # =============================================================================
 # growth rates
 # =============================================================================
+def Ri_model_I(Rmax, species, **kwargs):
+    """For non-integer runs for intuitive plots"""
+    Rm = Rmax * (1-(species.Nm / species.Km))
+    Rf = Rmax * (1-(species.Nf / species.Kf))
+    if Rm <0:
+        Rm = 0
+    if Rf<0:
+        Rf =0
+    return Rf, Rm
+
 def Ri_model_A(Rmax, species, **kwargs):
     Rm = Rmax * (1-(species.Nm / species.Km))
     Rf = Rmax * (1-(species.Nf / species.Kf))
@@ -57,7 +74,6 @@ def Ri_model_C(Rmax, species, **kwargs):
     if len(species.Nm_hist) > B:
         fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
                                     species.Nf_hist[-B+1]/species.Nm_hist[-B+1]]).min()
-        
     else:
         fecundity_factor = 1
     if "Rgen_model" in kwargs.keys():

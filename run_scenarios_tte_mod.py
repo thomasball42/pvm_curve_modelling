@@ -17,32 +17,29 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 NUM_WORKERS = 80
 multi = True
-overwrite = False
 
 # =============================================================================
 # PARAMS
 # =============================================================================
 
-results_path = "/maps/tsb42/pvm_curve/results_fixed_N0"
+results_path = "/maps/tsb42/pvm_curve/results_TTE"
 
 num_runs = 10000
 Ks = np.geomspace(1, 30000, num = 200)
-num_years = 100
+extinction_limit_years = 100
 
-Q_space = np.arange(0.1, 0.55, 0.05)
-Rmax_space = [0.055, 0.265, 0.373, 0.447, 0.509, 0.56, 0.619, 0.644, 0.71, 0.774]
-Sa_space = np.arange(0.35, 0.95, 0.05)
+TTE_cutoff_years = 40000
 
-# Q_space = [0.15]
-# Rmax_space = [0.56]
-# Sa_space = [0.65]
+Q_space = np.arange(0.05, 0.35, 0.05)
+Rmax_space = [0.055, 0.265, 0.447, 0.56, 0.644, 0.774]
+Sa_space = np.arange(0.35, 0.95, 0.15)
 
 N0_space = [0] # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # =============================================================================
 # SETUP
 # =============================================================================
-years = np.arange(0, num_years, 1)
+years = np.arange(0, TTE_cutoff_years, 1)
 Ks = np.unique(np.round(Ks))
 
 # set up some runs
@@ -98,35 +95,35 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
     else:
         B = None
     run_label = gen_name(run_name, Q, Sa, Rmax, N0)
-    run_path = os.path.join(results_path, run_label + ".csv")
-    if os.path.isfile(run_path) and not overwrite:
-        pass
-    else:
-        q_pars = (0, Q)
-        for k, K in enumerate(Ks):
-            N0 = K # MIGHT WANT TO CHANGE THIS
-            if not multi:
-                print(f"{run_label}, {k} / {len(Ks)}")
-            extinctions = 0
-            run_counter = 0
-            for _ in range(num_runs):
-                sp = _population.Population(K, B, Rmax, Sa, N0)
-                for y in years:
-                    sp.iterate(modelR, modelN, _models.normal_dist(*q_pars), **kwargs)
-                    if not sp.EXTANT:
-                        extinctions += 1
-                        run_counter += 1
-                        break
-                    if sp.RUNABORT:
-                        break
-                if sp.EXTANT and not sp.RUNABORT:
-                    extinctions += 0
+    q_pars = (0, Q)
+    for k, K in enumerate(Ks):
+        N0 = K # MIGHT WANT TO CHANGE THIS
+        if not multi:
+            print(f"{run_label}, {k} / {len(Ks)}")
+        extinctions = 0
+        run_counter = 0
+        tte_list = []
+        for _ in range(num_runs):
+            sp = _population.Population(K, B, Rmax, Sa, N0)
+            rec = False
+            for y in years:
+                sp.iterate(modelR, modelN, _models.normal_dist(*q_pars), **kwargs)
+                if not sp.EXTANT and not rec and y <= extinction_limit_years:
+                    extinctions += 1
                     run_counter += 1
-            if run_counter > 0:
-                P = 1 - extinctions / run_counter
-                odf.loc[len(odf), ["runName", "K", "B", "Q", "Rmax", "N", "P", "Sa", "N0"]] = [
-                    run_label, K, B, Q, Rmax, num_runs, P, Sa, N0]
-        odf.to_csv(run_path)
+                    rec = True
+                    break
+                if sp.RUNABORT:
+                    break
+            if sp.EXTANT and not sp.RUNABORT:
+                extinctions += 0
+                run_counter += 1
+        if run_counter > 0:
+            mTTE = np.array([t for t in tte_list if t < TTE_cutoff_years]).mean()
+            P = 1 - extinctions / run_counter
+            odf.loc[len(odf), ["runName", "K", "B", "Q", "Rmax", "N", "P", "Sa", "N0", "mTTE"]] = [
+                run_label, K, B, Q, Rmax, num_runs, P, Sa, N0, mTTE]
+    odf.to_csv(os.path.join(results_path, run_label + ".csv"))
     
 # run sims
 if __name__ == '__main__':
