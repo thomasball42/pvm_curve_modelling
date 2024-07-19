@@ -18,10 +18,11 @@ class Population:
         self.Nf_hist = []
         self.Rm_hist = []
         self.Rf_hist = []
+        self.Q_hist = []
         self.EXTANT = True
         self.RUNABORT = False
     
-    def iterate(self, modelR, modelN, Q, **kwargs):
+    def iterate(self, modelR, modelN, modelQ, **kwargs):
         """
         Takes the desired growth model and a Q value.
         """
@@ -31,8 +32,9 @@ class Population:
         self.Nm_hist.append(Nm)
         self.Rf_hist.append(Rf)
         self.Rm_hist.append(Rm)
+        Q = modelQ(*kwargs["q_params"], self.Q_hist)
+        self.Q_hist.append(Q)
         newNf, newNm = modelN(Nf, Rf, Kf, Q), modelN(Nm, Rm, Km, Q)
-        
         if isinstance(newNf, type(None)) or isinstance(newNm, type(None)):
             if newNf == None or newNm == None:
                 self.RUNABORT = True

@@ -7,8 +7,6 @@ Created on Mon May 20 16:22:31 2024
 
 import numpy as np
 
-def normal_dist(loc, S):
-    return np.random.normal(loc=loc, scale=S, size=None)    
 
 def poisson_dist(lam): 
     if lam < 0:
@@ -17,10 +15,24 @@ def poisson_dist(lam):
         try:
             ret = np.random.poisson(lam)
         except ValueError as e:
-            print(f"ValueError in np.random.poisson: {e} - likely caused because 'Q' is too big. Run discounted.")
-            ret = None   
+            # print(f"ValueError in np.random.poisson: {e} - likely caused because 'Q' is too big. Run discounted.")
+            ret = round(lam) 
     return ret
 
+def Q_normal_dist(loc, S, RF, Q_hist):
+    return np.random.normal(loc=loc, scale=S, size=None)    
+
+def Q_ornstein_uhlenbeck(loc, S, RF, Q_hist):
+    """effectively a random walk with a central tendency, loc and S are the 
+    position and standard deviation of the normal respectively, RF is the
+    reversion factor"""
+    if len(Q_hist) > 0:
+        curr = Q_hist[-1]
+    else:
+        curr = loc
+    reversion = RF * (loc - curr)
+    return curr + reversion + np.random.normal(loc, S)
+    
 # =============================================================================
 # Population models
 # =============================================================================
