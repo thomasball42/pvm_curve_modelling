@@ -16,7 +16,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 overwrite = False
-NUM_WORKERS = 80
+NUM_WORKERS = 120
 multi = True
 
 # =============================================================================
@@ -29,13 +29,13 @@ num_runs = 10000
 Ks = np.geomspace(1, 30000, num = 200)
 extinction_limit_years = 100
 
-TTE_cutoff_years = 40000
+TTE_cutoff_years = 1000000
 
 Q_space = np.arange(0.05, 0.35, 0.05)
 Rmax_space = [0.055, 0.265, 0.447, 0.56, 0.644, 0.774]
 Sa_space = np.arange(0.35, 0.95, 0.15)
 
-N0_space = [0] # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
+N0_space = [0] # MODIFY THE CODE LOWER DOWN TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # =============================================================================
 # SETUP
@@ -45,19 +45,19 @@ Ks = np.unique(np.round(Ks))
 
 # set up some runs
 runs = {
-    "fixedN0_LGA": {
+    "LogGrowthA": {
         "modelR": _models.Ri_model_A,
         "modelN" : _models.Ni_log,
         "num_runs": num_runs,
         "kwargs": {}
     },
-    "fixedN0_LGB": {
+    "LogGrowthB": {
         "modelR": _models.Ri_model_B,
         "modelN" : _models.Ni_log,
         "num_runs": num_runs,
         "kwargs": {}
     },
-    "fixedN0_LGC": {
+    "LogGrowthC": {
         "modelR": _models.Ri_model_C,
         "modelN" : _models.Ni_log,
         "num_runs": num_runs,
@@ -112,9 +112,11 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
             rec = False
             for y in years:
                 sp.iterate(modelR, modelN, _models.normal_dist(*q_pars), **kwargs)
-                if not sp.EXTANT and not rec and y <= extinction_limit_years:
-                    extinctions += 1
+                if not sp.EXTANT and not rec:
+                    if y <= extinction_limit_years:
+                        extinctions += 1
                     run_counter += 1
+                    tte_list.append(y)
                     rec = True
                     break
                 if sp.RUNABORT:
@@ -122,11 +124,21 @@ def simulate(run_name, run_params, Q, Rmax, Sa, N0):
             if sp.EXTANT and not sp.RUNABORT:
                 extinctions += 0
                 run_counter += 1
+                tte_list.append(TTE_cutoff_years)
         if run_counter > 0:
-            mTTE = np.array([t for t in tte_list if t < TTE_cutoff_years]).mean()
+            tte_list = np.array(tte_list)
+            if len(tte_list[tte_list<TTE_cutoff_years]) > 0:
+                mTTE = (tte_list[tte_list<TTE_cutoff_years]).mean()
+            else:
+                mTTE = np.nan
+            TTEsubmax = len(tte_list[tte_list<TTE_cutoff_years])
+            TTEmax = len(tte_list[tte_list==TTE_cutoff_years])
             P = 1 - extinctions / run_counter
-            odf.loc[len(odf), ["runName", "K", "B", "Q", "Rmax", "N", "P", "Sa", "N0", "mTTE"]] = [
-                run_label, K, B, Q, Rmax, num_runs, P, Sa, N0, mTTE]
+            # print(tte_list)
+            # print(mTTE)
+            # print(TTEsubmax, TTEmax)
+            odf.loc[len(odf), ["runName", "K", "B", "Q", "Rmax", "N", "P", "Sa", "N0", "mTTE", "TTEmax", "TTEsubmax"]] = [
+                run_label, K, B, Q, Rmax, num_runs, P, Sa, N0, mTTE, TTEmax, TTEsubmax]
     odf.to_csv(run_path)
     
 # run sims
