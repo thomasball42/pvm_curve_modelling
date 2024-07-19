@@ -17,16 +17,16 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
 NUM_WORKERS = 80
-MULTIPROCESSING_ENABLED = False
+MULTIPROCESSING_ENABLED = True
 OVERWRITE_EXISTING_FILES = True
 
 # Paths
-RESULTS_PATH = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge\\Work\\P_curve_shape\\dat\\test"
+RESULTS_PATH = "/maps/tsb42/pvm_curve/results_D"
 
 # Simulation Parameters
-NUM_RUNS = 100
+NUM_RUNS = 10000
 NUM_YEARS = 100
-CARRYING_CAPACITIES = np.geomspace(1, 3000000000, num=150)
+CARRYING_CAPACITIES = np.geomspace(1, 300000000, num=200)
 CARRYING_CAPACITIES = np.unique(np.round(CARRYING_CAPACITIES))
 YEARS = np.arange(0, NUM_YEARS, 1)
 
@@ -35,7 +35,7 @@ YEARS = np.arange(0, NUM_YEARS, 1)
 # RMAX_SPACE = [0.055, 0.265, 0.373, 0.447, 0.509, 0.56, 0.619, 0.644, 0.71, 0.774]
 # SA_SPACE = np.arange(0.35, 0.95, 0.05)
 
-QREV_SPACE = np.geomspace(1, 100, 10) / 100
+QREV_SPACE = np.linspace(1, 100, 20) / 100
 QSD_SPACE = [0.10]
 RMAX_SPACE = [0.509]
 SA_SPACE = [0.4]
@@ -107,7 +107,7 @@ def simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0):
 
 def main():
     if MULTIPROCESSING_ENABLED:
-        task_count = len(RUNS) * len(QSD_SPACE) * len(RMAX_SPACE) * len(SA_SPACE)
+        task_count = len(RUNS) * len(QSD_SPACE) * len(RMAX_SPACE) * len(SA_SPACE) * len(QREV_SPACE)
         with ProcessPoolExecutor(max_workers=NUM_WORKERS) as executor:
             futures = []
             with tqdm(total=task_count) as progress_bar:
