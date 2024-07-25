@@ -21,28 +21,47 @@ MULTIPROCESSING_ENABLED = True
 OVERWRITE_EXISTING_FILES = True
 
 # Paths
-RESULTS_PATH = "/maps/tsb42/pvm_curve/results_D"
+RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_ABC_2"
 
 # Simulation Parameters
 NUM_RUNS = 10000
 NUM_YEARS = 100
-CARRYING_CAPACITIES = np.geomspace(1, 300000000, num=200)
+CARRYING_CAPACITIES = np.geomspace(1, 300000, num=200)
 CARRYING_CAPACITIES = np.unique(np.round(CARRYING_CAPACITIES))
 YEARS = np.arange(0, NUM_YEARS, 1)
 
 # Parameter Spaces
-# QSD_SPACE = np.arange(0.1, 0.55, 0.05)
+QSD_SPACE = np.arange(0.05, 0.55, 0.02)
 # RMAX_SPACE = [0.055, 0.265, 0.373, 0.447, 0.509, 0.56, 0.619, 0.644, 0.71, 0.774]
-# SA_SPACE = np.arange(0.35, 0.95, 0.05)
+RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 25)])
+SA_SPACE = np.arange(0.35, 0.95, 0.02)
 
-QREV_SPACE = np.linspace(1, 100, 20) / 100
-QSD_SPACE = [0.10]
-RMAX_SPACE = [0.509]
-SA_SPACE = [0.4]
+QREV_SPACE = np.linspace(1, 100, 10) / 100
 N0_SPACE = [0]  # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # Run Configuration
 RUNS = {
+    "LogGrowthA": {
+        "modelR": _models.Ri_model_A,
+        "modelN": _models.Ni_log,
+        "modelQ": _models.Q_normal_dist,
+        "num_runs": NUM_RUNS,
+        "kwargs": {}
+    },
+    "LogGrowthB": {
+        "modelR": _models.Ri_model_B,
+        "modelN": _models.Ni_log,
+        "modelQ": _models.Q_normal_dist,
+        "num_runs": NUM_RUNS,
+        "kwargs": {}
+    },
+    "LogGrowthC": {
+        "modelR": _models.Ri_model_C,
+        "modelN": _models.Ni_log,
+        "modelQ": _models.Q_normal_dist,
+        "num_runs": NUM_RUNS,
+        "kwargs": {}
+    },
     "LogGrowthD": {
         "modelR": _models.Ri_model_C,
         "modelN": _models.Ni_log,
@@ -114,6 +133,7 @@ def main():
                 for run_name, run_params in RUNS.items():
                     for qsd in QSD_SPACE:
                         for qrev in QREV_SPACE:
+                            qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
                             for Rmax in RMAX_SPACE:
                                 for N0 in N0_SPACE:
                                     sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
