@@ -16,25 +16,25 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 80
+NUM_WORKERS = 200
 MULTIPROCESSING_ENABLED = True
-OVERWRITE_EXISTING_FILES = True
+OVERWRITE_EXISTING_FILES = False
 
 # Paths
-RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_ABC_2"
+RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_ABCD_v2"
 
 # Simulation Parameters
 NUM_RUNS = 10000
 NUM_YEARS = 100
-CARRYING_CAPACITIES = np.geomspace(1, 300000, num=200)
+CARRYING_CAPACITIES = np.geomspace(1, 3000000, num=200)
 CARRYING_CAPACITIES = np.unique(np.round(CARRYING_CAPACITIES))
 YEARS = np.arange(0, NUM_YEARS, 1)
 
 # Parameter Spaces
-QSD_SPACE = np.arange(0.05, 0.55, 0.02)
+QSD_SPACE = np.arange(0.05, 0.55, 0.03)
 # RMAX_SPACE = [0.055, 0.265, 0.373, 0.447, 0.509, 0.56, 0.619, 0.644, 0.71, 0.774]
-RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 25)])
-SA_SPACE = np.arange(0.35, 0.95, 0.02)
+RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 15)])
+SA_SPACE = np.arange(0.35, 0.95, 0.15)
 
 QREV_SPACE = np.linspace(1, 100, 10) / 100
 N0_SPACE = [0]  # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
@@ -126,17 +126,26 @@ def simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0):
 
 def main():
     if MULTIPROCESSING_ENABLED:
-        task_count = len(RUNS) * len(QSD_SPACE) * len(RMAX_SPACE) * len(SA_SPACE) * len(QREV_SPACE)
+        task_count=0
+        for run_name, run_params in RUNS.items():
+            for qsd in QSD_SPACE:
+                for Rmax in RMAX_SPACE:
+                    for N0 in N0_SPACE:
+                        qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [1.0]
+                        for qrev in qrev_iterator:
+                            sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
+                            for Sa in sa_iterator:
+                                task_count += 1
         with ProcessPoolExecutor(max_workers=NUM_WORKERS) as executor:
             futures = []
             with tqdm(total=task_count) as progress_bar:
                 for run_name, run_params in RUNS.items():
                     for qsd in QSD_SPACE:
-                        for qrev in QREV_SPACE:
-                            qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
-                            for Rmax in RMAX_SPACE:
-                                for N0 in N0_SPACE:
-                                    sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
+                        for Rmax in RMAX_SPACE:
+                            for N0 in N0_SPACE:
+                                sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
+                                qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
+                                for qrev in qrev_iterator:
                                     for Sa in sa_iterator:
                                         futures.append(executor.submit(simulate, run_name, run_params, qsd, qrev, Rmax, Sa, N0))
                 for future in as_completed(futures):
@@ -151,6 +160,6 @@ def main():
                             sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
                             for Sa in sa_iterator:
                                 simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0)
-
+                                
 if __name__ == '__main__':
     main()
