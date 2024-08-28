@@ -20,9 +20,6 @@ scale_1_0 = False
 plot_pspace = False
 plot_curves = False
 
-all_out = True
-
-R2_cutoff = 0.99
 od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
@@ -49,9 +46,9 @@ for i, file in enumerate(f[:]):
     
     if os.path.isfile(data_fits_path) and not first_entry:
         data_fits = pd.read_csv(data_fits_path, index_col=0)
-        first_entry = False
     else:
         data_fits = pd.DataFrame()
+        first_entry = False
         
     dat = pd.read_csv(file)
     runName = dat.runName.unique().item()
@@ -105,9 +102,8 @@ for i, file in enumerate(f[:]):
                                 plot_lins=False)
     if not fit and not ret == None:
         fit = True
-        if ret[-2] > R2_cutoff:
-            params, y_predicted, R2, resids = ret
-            model_name = func.__name__
+        params, y_predicted, R2, resids = ret
+        model_name = func.__name__
            
         
     # calc k50, rsd, dPdK_max
