@@ -7,15 +7,13 @@ Created on Mon May 20 16:22:31 2024
 
 import numpy as np
 
-
 def poisson_dist(lam): 
     if lam < 0:
         ret = -1 # causes extinction
     else:
         try:
             ret = np.random.poisson(lam)
-        except ValueError as e:
-            # print(f"ValueError in np.random.poisson: {e} - likely caused because 'Q' is too big. Run discounted.")
+        except ValueError:
             ret = round(lam) 
     return ret
 

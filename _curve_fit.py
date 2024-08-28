@@ -24,7 +24,7 @@ def fit(curve_func, dat_x, dat_y, **kwargs):
     residuals = dat_y - y_predicted
     RSS = np.sum((dat_y - np.mean(dat_y))**2)
     R2 = 1 - (np.sum(residuals**2) / RSS)
-    return params, y_predicted, R2
+    return params, y_predicted, R2, residuals
 
 def mod_gompertz(x, a, b, c):
     return np.exp(-np.exp(a + b*(x**c)))
@@ -53,9 +53,7 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
                 alpha_space = np.arange(0.1, 1.1, 0.1)
             k_alpha_space = (x[:, np.newaxis] ** alpha_space.T).T
             maxr = -np.inf
-            # best_r2 = -np.inf
             a, b, alpha = None, None, None
-            # best_fit = None
             for c, col in enumerate(k_alpha_space):
                 r, _ = pearsonr(col, y_trans)
                 r = abs(r)
@@ -64,11 +62,6 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
                     b, a = np.polyfit(col, y_trans, 1)
                     xf = col
                     alpha = alpha_space[c]
-                    # temp_fit = fit(curve_func, dat_x, dat_y, init_guess = [a, b, alpha])
-                    # if temp_fit[-1] > best_r2:
-                    #     print(best_r2)
-                    #     best_r2 = temp_fit[-1]
-                    #     best_fit = temp_fit
             if a == None:
                 ret = None
             else:
