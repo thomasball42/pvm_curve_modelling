@@ -3,6 +3,8 @@
 Created on Wed May 22 13:55:22 2024
 
 @author: Thomas Ball
+
+This script is a bit of a mess. Aim to tidy at some point.
 """
 
 import os
@@ -28,7 +30,7 @@ results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results2_ABCD")
 data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\test.csv")
 
 # =============================================================================
-# Load data
+# Find data
 # =============================================================================
 f = []
 for path, subdirs, files in os.walk(results_path):
@@ -39,16 +41,17 @@ f = [k for k in f if "LogGrowthA" in k]
 
 #%%
 n = int(plot_curves)+int(plot_pspace)
-if n == 0:
-    n = 1
-fig, axs = plt.subplots(1, n)
+if n > 0:
+    fig, axs = plt.subplots(1, n)
 
-fx = []
-fy = []
-
+first_entry = True
 for i, file in enumerate(f[:]):
     
-    data_fits = pd.DataFrame()
+    if os.path.isfile(data_fits_path) and not first_entry:
+        data_fits = pd.read_csv(data_fits_path, index_col=0)
+        first_entry = False
+    else:
+        data_fits = pd.DataFrame()
         
     dat = pd.read_csv(file)
     runName = dat.runName.unique().item()
@@ -82,7 +85,7 @@ for i, file in enumerate(f[:]):
         else:
             x = x[:tail_start_index] / x[tail_start_index]
     
-    # initialise
+    # initialise fitting
     fit = False
     model_name = np.nan
     R2 = np.nan
@@ -105,8 +108,7 @@ for i, file in enumerate(f[:]):
         if ret[-2] > R2_cutoff:
             params, y_predicted, R2, resids = ret
             model_name = func.__name__
-        # else:
-            
+           
         
     # calc k50, rsd, dPdK_max
     xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
@@ -128,7 +130,6 @@ for i, file in enumerate(f[:]):
     kX_names = [f"k{int(X*100)}" for X in kXs]
     kX_diff = np.array([kX_vals[i] - kX2_vals[i] for i in range(len(kX_vals))])
     kX_diff_sd = np.sqrt((kX_diff**2).sum() / len(kX_diff))
-    
     
     if not np.isnan(yff).all():
         dPdK = np.diff(yff) / np.diff(xff)
@@ -166,8 +167,6 @@ for i, file in enumerate(f[:]):
             marker = "o"
             
         label = f"{runName}_(R2:{round(R2, nnnn+1)})"
-        fx.append(x)
-        fy.append(y)
         ax.scatter(x, 1 - y, c=c, alpha = 0.7, marker = marker)
         xff = np.geomspace(x.min(), x.max(), num = 100000)
         scatter_color = ax.collections[-1].get_facecolor()

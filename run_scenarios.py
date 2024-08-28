@@ -26,7 +26,7 @@ RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_ABCD_v2"
 # Simulation Parameters
 NUM_RUNS = 10000
 NUM_YEARS = 100
-CARRYING_CAPACITIES = np.geomspace(1, 3000000, num=200)
+CARRYING_CAPACITIES = np.geomspace(1, 30000, num=200)
 CARRYING_CAPACITIES = np.unique(np.round(CARRYING_CAPACITIES))
 YEARS = np.arange(0, NUM_YEARS, 1)
 
@@ -131,7 +131,7 @@ def main():
             for qsd in QSD_SPACE:
                 for Rmax in RMAX_SPACE:
                     for N0 in N0_SPACE:
-                        qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [1.0]
+                        qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
                         for qrev in qrev_iterator:
                             sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
                             for Sa in sa_iterator:
