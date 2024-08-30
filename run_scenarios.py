@@ -17,52 +17,56 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
 NUM_WORKERS = 200
-MULTIPROCESSING_ENABLED = True
+MULTIPROCESSING_ENABLED = False
 OVERWRITE_EXISTING_FILES = False
 
 # Paths
-RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_ABCD_v2"
+RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_DC_v2"
+# RESULTS_PATH = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge\\Work\\P_curve_shape\\dat\\test_C"
 
 # Simulation Parameters
 NUM_RUNS = 10000
 NUM_YEARS = 100
-CARRYING_CAPACITIES = np.geomspace(1, 30000, num=200)
+CARRYING_CAPACITIES = np.geomspace(1, 3000000, num=200)
 CARRYING_CAPACITIES = np.unique(np.round(CARRYING_CAPACITIES))
 YEARS = np.arange(0, NUM_YEARS, 1)
 
 # Parameter Spaces
 QSD_SPACE = np.arange(0.05, 0.55, 0.03)
+# QSD_SPACE = [0.11]
 # RMAX_SPACE = [0.055, 0.265, 0.373, 0.447, 0.509, 0.56, 0.619, 0.644, 0.71, 0.774]
 RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 15)])
-SA_SPACE = np.arange(0.35, 0.95, 0.15)
+SA_SPACE = np.arange(0.35, 0.95 + 0.15, 0.15)
+# RMAX_SPACE = [0.158]
+# SA_SPACE = [0.35]
 
-QREV_SPACE = np.linspace(1, 100, 10) / 100
+QREV_SPACE = np.linspace(1, 100, 5) / 100
 N0_SPACE = [0]  # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # Run Configuration
 RUNS = {
-    "LogGrowthA": {
-        "modelR": _models.Ri_model_A,
-        "modelN": _models.Ni_log,
-        "modelQ": _models.Q_normal_dist,
-        "num_runs": NUM_RUNS,
-        "kwargs": {}
-    },
-    "LogGrowthB": {
-        "modelR": _models.Ri_model_B,
-        "modelN": _models.Ni_log,
-        "modelQ": _models.Q_normal_dist,
-        "num_runs": NUM_RUNS,
-        "kwargs": {}
-    },
-    "LogGrowthC": {
+    # "LogGrowthA": {
+    #     "modelR": _models.Ri_model_A,
+    #     "modelN": _models.Ni_log,
+    #     "modelQ": _models.Q_normal_dist,
+    #     "num_runs": NUM_RUNS,
+    #     "kwargs": {}
+    # },
+    # "LogGrowthB": {
+    #     "modelR": _models.Ri_model_B,
+    #     "modelN": _models.Ni_log,
+    #     "modelQ": _models.Q_normal_dist,
+    #     "num_runs": NUM_RUNS,
+    #     "kwargs": {}
+    # },
+    "LogGrowthC2": {
         "modelR": _models.Ri_model_C,
         "modelN": _models.Ni_log,
         "modelQ": _models.Q_normal_dist,
         "num_runs": NUM_RUNS,
         "kwargs": {}
     },
-    "LogGrowthD": {
+    "LogGrowthD2": {
         "modelR": _models.Ri_model_C,
         "modelN": _models.Ni_log,
         "modelQ": _models.Q_ornstein_uhlenbeck,
@@ -76,7 +80,7 @@ if not os.path.isdir(RESULTS_PATH):
     raise ValueError("RESULTS_PATH must be a valid directory")
 
 def generate_filename(run_name, qsd, qrev, Sa, Rmax, N0):
-    return f"{run_name}_QSD{round(qsd, 3)}_QREV{round(qrev, 3)}_RMAX{round(Rmax, 3)}_SA{round(Sa, 3) if Sa else 'nan'}_N0{round(N0, 3)}"
+    return f"{run_name}_QSD{round(qsd, 3)}_QREV{round(qrev, 3) if qrev else 'nan'}_RMAX{round(Rmax, 3)}_SA{round(Sa, 3) if Sa else 'nan'}_N0{round(N0, 3)}"
 
 def simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0):
     modelR = run_params["modelR"]
@@ -157,9 +161,11 @@ def main():
                 for qrev in QREV_SPACE:
                     for Rmax in RMAX_SPACE:
                         for N0 in N0_SPACE:
-                            sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
-                            for Sa in sa_iterator:
-                                simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0)
+                            qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
+                            for qrev in qrev_iterator:
+                                sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
+                                for Sa in sa_iterator:
+                                    simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0)
                                 
 if __name__ == '__main__':
     main()

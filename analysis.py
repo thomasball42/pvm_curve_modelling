@@ -18,12 +18,12 @@ import _curve_fit
 
 scale_1_0 = False
 plot_pspace = False
-plot_curves = False
+plot_curves = True
 
 od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results2_ABCD")
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\test_C")
 data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\test.csv")
 
 # =============================================================================
@@ -34,7 +34,7 @@ for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
 f = [file for file in f if ".csv" in file]
-f = [k for k in f if "LogGrowthA" in k]
+# f = [k for k in f if "LogGrowthA" in k]
 
 #%%
 n = int(plot_curves)+int(plot_pspace)
