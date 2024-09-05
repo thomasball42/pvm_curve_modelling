@@ -17,14 +17,14 @@ import matplotlib.ticker
 import _curve_fit
 
 scale_1_0 = False
-plot_pspace = False
+plot_pspace = True
 plot_curves = True
 
 od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\test_C")
-data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\test.csv")
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD")
+data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_C.csv")
 
 # =============================================================================
 # Find data
@@ -34,7 +34,8 @@ for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
 f = [file for file in f if ".csv" in file]
-# f = [k for k in f if "LogGrowthA" in k]
+# f = [k for k in f if "LogGrowthD2" in k and "SA0.65" in k and "QREV0.25" in k]
+f = [k for k in f if "LogGrowthC2" in k and "SA0.65" in k]
 
 #%%
 n = int(plot_curves)+int(plot_pspace)
@@ -67,6 +68,9 @@ for i, file in enumerate(f[:]):
     x = dat.K 
     y = dat.P
     
+    max_y = y.max()
+    
+        
     try:
         sa = dat.SA.unique().item()
     except AttributeError:
@@ -105,7 +109,7 @@ for i, file in enumerate(f[:]):
         params, y_predicted, R2, resids = ret
         model_name = func.__name__
            
-        
+
     # calc k50, rsd, dPdK_max
     xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
     yff = func(xff, *params)
@@ -136,9 +140,9 @@ for i, file in enumerate(f[:]):
     rsd = np.sqrt(np.sum(resids ** 2) / (len(resids) - len(params)))
     
     ddf.loc[len(ddf), ["model", "runName", "RMAX", "QSD", "QREV", "B", "SA", 
-                        "model_name", *param_names, "R2", "RSD", *kX_names, "dPdK_tp"]] = [
+                        "model_name", *param_names, "R2", "RSD", "MAX_Y", *kX_names, "dPdK_tp"]] = [
                         model, runName, rmax, qsd, qrev, B, sa, 
-                        model_name, *params, R2, rsd, *kX_vals, dPdK_max]
+                        model_name, *params, R2, rsd, max_y, *kX_vals, dPdK_max]
                             
     print(R2)
     # # PLOT CURVES AND FITS
@@ -163,7 +167,7 @@ for i, file in enumerate(f[:]):
             marker = "o"
             
         label = f"{runName}_(R2:{round(R2, nnnn+1)})"
-        ax.scatter(x, 1 - y, c=c, alpha = 0.7, marker = marker)
+        ax.scatter(x, 1 - y, color=c, alpha = 0.7, marker = marker)
         xff = np.geomspace(x.min(), x.max(), num = 100000)
         scatter_color = ax.collections[-1].get_facecolor()
         ax.plot(xff, 1 - func(xff, *params), color = scatter_color, label = label)
@@ -174,7 +178,7 @@ for i, file in enumerate(f[:]):
             def custom_formatter(x, pos):
                 return f'$10^{{{int(np.log10(x))}}}$'
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
-        ax.set_ylabel(f"Probability of persistence (N={round(N)})")
+        ax.set_ylabel(f"Probability of extinction (N={round(N)})")
         ax.set_xlabel("Carrying capacity K")
         
     if plot_pspace:

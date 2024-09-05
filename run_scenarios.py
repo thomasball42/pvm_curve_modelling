@@ -22,7 +22,6 @@ OVERWRITE_EXISTING_FILES = False
 
 # Paths
 RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_DC_v2"
-# RESULTS_PATH = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge\\Work\\P_curve_shape\\dat\\test_C"
 
 # Simulation Parameters
 NUM_RUNS = 10000
@@ -33,32 +32,28 @@ YEARS = np.arange(0, NUM_YEARS, 1)
 
 # Parameter Spaces
 QSD_SPACE = np.arange(0.05, 0.55, 0.03)
-# QSD_SPACE = [0.11]
-# RMAX_SPACE = [0.055, 0.265, 0.373, 0.447, 0.509, 0.56, 0.619, 0.644, 0.71, 0.774]
 RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 15)])
 SA_SPACE = np.arange(0.35, 0.95 + 0.15, 0.15)
-# RMAX_SPACE = [0.158]
-# SA_SPACE = [0.35]
 
 QREV_SPACE = np.linspace(1, 100, 5) / 100
 N0_SPACE = [0]  # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # Run Configuration
 RUNS = {
-    # "LogGrowthA": {
-    #     "modelR": _models.Ri_model_A,
-    #     "modelN": _models.Ni_log,
-    #     "modelQ": _models.Q_normal_dist,
-    #     "num_runs": NUM_RUNS,
-    #     "kwargs": {}
-    # },
-    # "LogGrowthB": {
-    #     "modelR": _models.Ri_model_B,
-    #     "modelN": _models.Ni_log,
-    #     "modelQ": _models.Q_normal_dist,
-    #     "num_runs": NUM_RUNS,
-    #     "kwargs": {}
-    # },
+    "LogGrowthA": {
+        "modelR": _models.Ri_model_A,
+        "modelN": _models.Ni_log,
+        "modelQ": _models.Q_normal_dist,
+        "num_runs": NUM_RUNS,
+        "kwargs": {}
+    },
+    "LogGrowthB": {
+        "modelR": _models.Ri_model_B,
+        "modelN": _models.Ni_log,
+        "modelQ": _models.Q_normal_dist,
+        "num_runs": NUM_RUNS,
+        "kwargs": {}
+    },
     "LogGrowthC2": {
         "modelR": _models.Ri_model_C,
         "modelN": _models.Ni_log,

@@ -81,6 +81,9 @@ def Ri_model_B(Rmax, species, **kwargs):
     return Rf, Rm
 
 # def Ri_model_C(Rmax, species, **kwargs):
+#     """ implementation of C using exponential recalculation of Rprime - which I
+#     don't think is correct (see my supplementary doc) - new implementation below
+#     """
 #     Sa, B = species.Sa,species.B
 #     if len(species.Nm_hist) > B:
 #         fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
