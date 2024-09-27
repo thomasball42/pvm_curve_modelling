@@ -17,14 +17,14 @@ import matplotlib.ticker
 import _curve_fit
 
 scale_1_0 = False
-plot_pspace = True
-plot_curves = True
+plot_pspace = False
+plot_curves = False
 
 od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD")
-data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_C.csv")
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD2")
+data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_D.csv")
 
 # =============================================================================
 # Find data
@@ -34,8 +34,7 @@ for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
 f = [file for file in f if ".csv" in file]
-# f = [k for k in f if "LogGrowthD2" in k and "SA0.65" in k and "QREV0.25" in k]
-f = [k for k in f if "LogGrowthC2" in k and "SA0.65" in k]
+f = [file for file in f if "LogGrowthD2" in file]
 
 #%%
 n = int(plot_curves)+int(plot_pspace)
@@ -60,9 +59,14 @@ for i, file in enumerate(f[:]):
     model = runName.split("_")[0]
     qsd = dat.QSD.unique().item()
     N = dat.N.unique().item()
-    qrev = dat.QREV.unique().item()
-    if not model == "LogGrowthD":
+    
+    try:
+        qrev = dat.QREV.unique().item()
+        if not model == "LogGrowthD2":
+            qrev = np.nan
+    except AttributeError:
         qrev = np.nan
+        
     rmax = dat.RMAX.unique().item()
     B = dat.B.unique().item()
     x = dat.K 
@@ -70,7 +74,6 @@ for i, file in enumerate(f[:]):
     
     max_y = y.max()
     
-        
     try:
         sa = dat.SA.unique().item()
     except AttributeError:
@@ -90,6 +93,7 @@ for i, file in enumerate(f[:]):
     fit = False
     model_name = np.nan
     R2 = np.nan
+    resids = np.nan
         
     # TRY GOMPERTZ
     func = _curve_fit.mod_gompertz
@@ -137,7 +141,10 @@ for i, file in enumerate(f[:]):
     else:
         dPdK_max = np.nan
     
-    rsd = np.sqrt(np.sum(resids ** 2) / (len(resids) - len(params)))
+    if not ret == None:
+        rsd = np.sqrt(np.sum(resids ** 2) / (len(resids) - 0))
+    else:
+        rsd = np.nan
     
     ddf.loc[len(ddf), ["model", "runName", "RMAX", "QSD", "QREV", "B", "SA", 
                         "model_name", *param_names, "R2", "RSD", "MAX_Y", *kX_names, "dPdK_tp"]] = [
@@ -152,7 +159,7 @@ for i, file in enumerate(f[:]):
         else:
             ax = axs
         label = f"Model {model.strip('LogGrowth')}"
-        nnnn = 0
+        nnnn = 0 #batman
         while round(R2, nnnn) == 1:
             nnnn += 1
         
