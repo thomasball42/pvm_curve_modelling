@@ -69,7 +69,8 @@ for p, param in enumerate(Y):
     r2 = sklearn.metrics.r2_score(y_test, y_pred)
     coefs = model.coef_
     
-    coefs_names = [f"{names[i]}:{coefs[i]}" for i in range(len(coefs))]
+    rounder = 3
+    coefs_names = [f"{names[i]}:{round(coefs[i], rounder)}" for i in range(len(coefs))]
     
     print(f"{param.upper()}")
     print(f"MSE: {mse}, R2: {r2}")
