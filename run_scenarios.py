@@ -21,7 +21,7 @@ MULTIPROCESSING_ENABLED = False
 OVERWRITE_EXISTING_FILES = False
 
 # Paths
-RESULTS_PATH = "/maps/tsb42/pvm_curve/results/results_DC_v2"
+RESULTS_PATH = ""
 
 # Simulation Parameters
 NUM_RUNS = 10000

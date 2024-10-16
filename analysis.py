@@ -5,6 +5,7 @@ Created on Wed May 22 13:55:22 2024
 @author: Thomas Ball
 
 This script is a bit of a mess. Aim to tidy at some point.
+
 """
 
 import os
@@ -20,11 +21,15 @@ scale_1_0 = False
 plot_pspace = False
 plot_curves = False
 
+# my onedrive path, computer dependent..
 od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
+# dir that the simulation outputs are in
 results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD2")
+# path to output fitted data
 data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_D.csv")
+
 
 # =============================================================================
 # Find data
@@ -105,7 +110,7 @@ for i, file in enumerate(f[:]):
                             plot_lins=False,)
     if ret == None:
         ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                alpha_space = np.arange(-3, 0, 0.001),
+                                alpha_space = np.arange(-5, 0, 0.001),
                                 ylim=(0.05, 0.95), 
                                 plot_lins=False)
     if not fit and not ret == None:
@@ -113,8 +118,8 @@ for i, file in enumerate(f[:]):
         params, y_predicted, R2, resids = ret
         model_name = func.__name__
            
-
-    # calc k50, rsd, dPdK_max
+    # NOTE THAT kX is 1-X due to reframing of P_S(K) -> P_E(K)
+    # calc kX, rsd, dPdK_max
     xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
     yff = func(xff, *params)
     kXs = np.arange(0.1, 1.0, 0.1)
@@ -129,11 +134,9 @@ for i, file in enumerate(f[:]):
             kX = np.nan
         else: kX = ((np.log( -np.log(X)) - a) / b ) ** (1/alpha)
         return kX
-    kX_vals = [get_kX(X, xff, yff) for X in kXs]
-    kX2_vals = [get_kX2(X, *params) for X in kXs]
+
+    kX_vals = [get_kX2(X, *params) for X in kXs]
     kX_names = [f"k{int(X*100)}" for X in kXs]
-    kX_diff = np.array([kX_vals[i] - kX2_vals[i] for i in range(len(kX_vals))])
-    kX_diff_sd = np.sqrt((kX_diff**2).sum() / len(kX_diff))
     
     if not np.isnan(yff).all():
         dPdK = np.diff(yff) / np.diff(xff)
