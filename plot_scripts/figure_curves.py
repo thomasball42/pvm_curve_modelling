@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 22 13:55:22 2024
+Created on Mon Oct 14 11:47:34 2024
 
 @author: Thomas Ball
-
-This script is a bit of a mess. Aim to tidy at some point.
-
 """
 
 import os
@@ -21,15 +18,11 @@ scale_1_0 = False
 plot_pspace = False
 plot_curves = True
 
-# my onedrive path, computer dependent..
 # od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
-# dir that the simulation outputs are in
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD2")
-# path to output fitted data
-data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_D.csv")
-
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results_plot")
+# data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_D.csv")
 
 # =============================================================================
 # Find data
@@ -39,26 +32,10 @@ for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
 f = [file for file in f if ".csv" in file]
-f = [file for file in f if "LogGrowthD2" in file]
 
-f = [file for file in f if "QSD0.08" in file]
-f = [file for file in f if "SA0.35" in file]
-f = [file for file in f if "RMAX0.2" in file]
+fig, ax = plt.subplots()
 
-
-#%%
-n = int(plot_curves)+int(plot_pspace)
-if n > 0:
-    fig, axs = plt.subplots(1, n)
-
-first_entry = True
 for i, file in enumerate(f[:]):
-    
-    if os.path.isfile(data_fits_path) and not first_entry:
-        data_fits = pd.read_csv(data_fits_path, index_col=0)
-    else:
-        data_fits = pd.DataFrame()
-        first_entry = False
         
     dat = pd.read_csv(file)
     runName = dat.runName.unique().item()
@@ -115,7 +92,7 @@ for i, file in enumerate(f[:]):
                             plot_lins=False,)
     if ret == None:
         ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                alpha_space = np.arange(-5, 0, 0.001),
+                                alpha_space = np.arange(-3, 0, 0.001),
                                 ylim=(0.05, 0.95), 
                                 plot_lins=False)
     if not fit and not ret == None:
@@ -123,8 +100,8 @@ for i, file in enumerate(f[:]):
         params, y_predicted, R2, resids = ret
         model_name = func.__name__
            
-    # NOTE THAT kX is 1-X due to reframing of P_S(K) -> P_E(K)
-    # calc kX, rsd, dPdK_max
+
+    # calc k50, rsd, dPdK_max
     xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
     yff = func(xff, *params)
     kXs = np.arange(0.1, 1.0, 0.1)
@@ -139,9 +116,11 @@ for i, file in enumerate(f[:]):
             kX = np.nan
         else: kX = ((np.log( -np.log(X)) - a) / b ) ** (1/alpha)
         return kX
-
-    kX_vals = [get_kX2(X, *params) for X in kXs]
+    kX_vals = [get_kX(X, xff, yff) for X in kXs]
+    kX2_vals = [get_kX2(X, *params) for X in kXs]
     kX_names = [f"k{int(X*100)}" for X in kXs]
+    kX_diff = np.array([kX_vals[i] - kX2_vals[i] for i in range(len(kX_vals))])
+    kX_diff_sd = np.sqrt((kX_diff**2).sum() / len(kX_diff))
     
     if not np.isnan(yff).all():
         dPdK = np.diff(yff) / np.diff(xff)
@@ -162,10 +141,6 @@ for i, file in enumerate(f[:]):
     print(R2)
     # # PLOT CURVES AND FITS
     if plot_curves:
-        if n>1:
-            ax = axs[-1]
-        else:
-            ax = axs
         label = f"Model {model.strip('LogGrowth')}"
         nnnn = 0 #batman
         while round(R2, nnnn) == 1:
@@ -180,8 +155,24 @@ for i, file in enumerate(f[:]):
         else:
             c = matplotlib.cm.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
             marker = "o"
-            
-        label = f"{runName}_(R2:{round(R2, nnnn+1)})"
+        mmm = {"LogGrowthA":0.05,
+               "LogGrowthB":0.33,
+               "LogGrowthC2":0.66,
+               "LogGrowthD2":0.95}
+        
+        
+        c = matplotlib.cm.get_cmap("viridis")(mmm[model])
+        
+        mod = model.strip("LogGrowth").strip("2")
+        
+        # label = f"{runName}_(R2:{round(R2, nnnn+1)})"
+        if mod == "A" or mod == "B":
+            label = f"Model {mod}; $r_{{max}}$=0.158; $\\sigma$=0.11"
+        elif mod == "C":
+            label = f"Model {mod}; $r_{{max}}$=0.158; $\\sigma$=0.11; $S_a$=0.35"
+        elif mod == "D":
+            label = f"Model {mod}; $r_{{max}}$=0.158; $\\sigma$=0.11; $S_a$=0.35; $Z$=0.258"
+        
         ax.scatter(x, 1 - y, color=c, alpha = 0.7, marker = marker)
         xff = np.geomspace(x.min(), x.max(), num = 100000)
         scatter_color = ax.collections[-1].get_facecolor()
@@ -193,39 +184,17 @@ for i, file in enumerate(f[:]):
             def custom_formatter(x, pos):
                 return f'$10^{{{int(np.log10(x))}}}$'
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
-        ax.set_ylabel(f"Probability of extinction (N={round(N)})")
-        ax.set_xlabel("Carrying capacity K")
+        ax.set_ylabel(f"Probability of extinction $P_E$")
+        ax.set_xlabel("Carrying capacity $K$")
         
-    if plot_pspace:
-        if n>1:
-            ax = axs[0]
-        else:
-            ax = axs
-        if np.isnan(R2):
-            c = "r"
-            marker = "x"
-        elif params[-1] < 0:
-            c = "m"
-            marker = "o"
-        else:
-            c = matplotlib.cm.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
-            marker = "o"
-        ax.scatter(qsd, rmax, color = c, s = 70, marker = marker)
-        ax.set_ylabel("R$_{max}$")
-        ax.set_xlabel("Stochasicity SD")
-        
-    data_fits = pd.concat([data_fits, ddf])
-    data_fits.to_csv(data_fits_path)
-
 if plot_pspace:
-    if n>1:
-        ax = axs[0]
     norm = plt.Normalize(0.990, 1)
     sm = plt.cm.ScalarMappable(cmap='viridis', norm=norm)
     cbar = plt.colorbar(sm, ax=ax)
     cbar.set_label('R2')
-    
-fig.set_size_inches(12, 7)
+
+ax.legend(fontsize = 9)
+fig.set_size_inches(8, 4)
 fig.tight_layout()
 
 
