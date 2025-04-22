@@ -9,9 +9,9 @@ Created on Wed May  1 16:52:42 2024
 # Population
 # =============================================================================
 class Population:
-    def __init__(self, K, B, Rmax, Sa, N0):
+    def __init__(self, K, B=None, Rmax=None, Sa=None, N0=0):
         self.K, self.B, self.Rmax, self.Sa = K, B, Rmax, Sa
-        self.Km, self.Kf = K/2,K/2
+        self.Km, self.Kf = K / 2, K / 2
         self.Nm = N0 / 2
         self.Nf = N0 / 2
         self.Nm_hist = []

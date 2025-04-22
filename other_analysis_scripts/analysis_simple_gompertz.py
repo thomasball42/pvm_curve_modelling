@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 22 13:55:22 2024
+Created on Tue Apr 15 13:37:41 2025
 
-@author: Thomas Ball
+@author: tom
 
 This script is a bit of a mess. Aim to tidy at some point.
 
@@ -22,13 +22,13 @@ plot_pspace = False
 plot_curves = True
 
 # my onedrive path, computer dependent..
-# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
+od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
+# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
 # dir that the simulation outputs are in
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD2")
+results_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\simulation_results\\results_model_A_bfit")
 # path to output fitted data
-data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\data_fits_A.csv")
+data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\data_fits_A_basic_gompertz.csv")
 
 
 # =============================================================================
@@ -39,7 +39,7 @@ for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
 # f = [file for file in f if ".csv" in file]
-
+f = f[:]
 
 #%%
 n = int(plot_curves)+int(plot_pspace)
@@ -84,16 +84,6 @@ for i, file in enumerate(f[:]):
     except AttributeError:
         sa = None
         
-    if scale_1_0:
-        reversed_arr = y[::-1]
-        first_non_one_index = np.argmax(reversed_arr != 1)
-        tail_start_index = len(y) - first_non_one_index
-        y = y[:tail_start_index]
-        if len(x) == tail_start_index:
-            x = x/ x.max()
-        else:
-            x = x[:tail_start_index] / x[tail_start_index]
-    
     # initialise fitting
     fit = False
     model_name = np.nan
@@ -101,40 +91,49 @@ for i, file in enumerate(f[:]):
     resids = np.nan
         
     # TRY GOMPERTZ
-    func = _curve_fit.mod_gompertz
-    param_names = ("param_a", "param_b", "param_alpha")
+    # func = _curve_fit.mod_gompertz
+    # param_names = ("param_a", "param_b", "param_alpha")
+    # params = tuple([np.nan for _ in param_names])
+    # ret = _curve_fit.betterfit_gompertz(func, x, y, 
+    #                         alpha_space = np.arange(0, 5, 0.001), 
+    #                         ylim=(0.05, 0.95), 
+    #                         plot_lins=False,)
+    # if ret == None:
+    #     ret = _curve_fit.betterfit_gompertz(func, x, y, 
+    #                             alpha_space = np.arange(-5, 0, 0.001),
+    #                             ylim=(0.05, 0.95), 
+    #                             plot_lins=False)
+    # if not fit and not ret == None:
+    #     fit = True
+    #     params, y_predicted, R2, resids = ret
+    #     model_name = func.__name__
+    
+    func = _curve_fit.basic_gomp
+    param_names = ("bg_param_a", "bg_param_b")
     params = tuple([np.nan for _ in param_names])
-    ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                            alpha_space = np.arange(0, 5, 0.001), 
-                            ylim=(0.05, 0.95), 
-                            plot_lins=False,)
-    if ret == None:
-        ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                alpha_space = np.arange(-5, 0, 0.001),
-                                ylim=(0.05, 0.95), 
-                                plot_lins=False)
+    ret = _curve_fit.fit(func, x, y)
+    
     if not fit and not ret == None:
+        
         fit = True
         params, y_predicted, R2, resids = ret
         model_name = func.__name__
-           
+    
     # NOTE THAT kX is 1-X due to reframing of P_S(K) -> P_E(K)
     # calc kX, rsd, dPdK_max
     xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
     yff = func(xff, *params)
     kXs = np.arange(0.1, 1.0, 0.1)
-    def get_kX(X, xff, yff):
-        gtX = xff[yff >= X]
-        if len(gtX) > 0: kX = gtX[0]
-        else: kX = np.nan
-        return kX
-    def get_kX2(X, a, b, alpha):
+    
+    
+    def get_kX2(X, a, b, alpha = 1):
         """analytical"""
         if np.isnan(a):
             kX = np.nan
         else: kX = ((np.log( -np.log(X)) - a) / b ) ** (1/alpha)
         return kX
-
+    
+    
     kX_vals = [get_kX2(X, *params) for X in kXs]
     kX_names = [f"k{int(X*100)}" for X in kXs]
     
@@ -156,7 +155,7 @@ for i, file in enumerate(f[:]):
                             
     print(R2)
     # # PLOT CURVES AND FITS
-    if plot_curves:
+    if plot_curves and max_y == 1:
         if n>1:
             ax = axs[-1]
         else:
@@ -219,7 +218,8 @@ if plot_pspace:
     sm = plt.cm.ScalarMappable(cmap='viridis', norm=norm)
     cbar = plt.colorbar(sm, ax=ax)
     cbar.set_label('R2')
-    
+
+# ax.legend()
 fig.set_size_inches(12, 7)
 fig.tight_layout()
 

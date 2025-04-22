@@ -69,11 +69,22 @@ def Ri_model_I(Rmax, species, **kwargs):
     if Rf<0:
         Rf =0
     return Rf, Rm
-
+ 
 def Ri_model_A(Rmax, species, **kwargs):
     Rm = Rmax * (1-(species.Nm / species.Km))
     Rf = Rmax * (1-(species.Nf / species.Kf))
     return Rf, Rm
+
+def Ri_model_alleeA(Rmax, species, **kwargs):
+    if "allee_params_theta_upsil" in kwargs.keys():
+        theta, upsil = kwargs["allee_params_theta_upsil"]
+    else: theta, upsil = 100, 0.9
+    def pc_growth(R, N, K, theta, upsil):
+        return R - ((R * N) / K) - ((theta * upsil) / (theta + N))
+    Rm = pc_growth(Rmax, species.Nm, species.Km, theta, upsil)
+    Rf = pc_growth(Rmax, species.Nf, species.Kf, theta, upsil)
+    return Rf, Rm
+
 
 def Ri_model_B(Rmax, species, **kwargs):
     Rm = Rmax * (1 - ((species.Nm+species.Nf)/(species.Km+species.Kf)))
@@ -85,7 +96,11 @@ def Ri_model_C(Rmax, species, **kwargs):
         Rgen_model = kwargs["Rgen_model"]
     else:
         Rgen_model = Ri_model_B
-    Sa, B = species.Sa,species.B
+        
+    if species.Sa is None or species.B is None:
+        raise Exception("Parameters 'SA' and 'B' undefined in ModelC run.")
+    else:
+        Sa, B = species.Sa,species.B
     tsp = copy.deepcopy(species)
     if len(species.Nm_hist) > B:
         fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],

@@ -16,6 +16,10 @@ import inspect
 def lin(x, m, c):
     return m * x + c
 
+def logistic(x, a, b, c):
+    return a / (1 + np.exp(-b * (x - c)))
+    
+    
 def fit(curve_func, dat_x, dat_y, **kwargs):
     init_guess = kwargs.pop("init_guess", 
                             np.zeros(curve_func.__code__.co_argcount - 1))
@@ -27,15 +31,18 @@ def fit(curve_func, dat_x, dat_y, **kwargs):
     R2 = 1 - (np.sum(residuals**2) / RSS)
     return params, y_predicted, R2, residuals
 
+def basic_gomp(x, a, b):
+    return np.exp(-np.exp(a + b*(x)))
+    
 def mod_gompertz(x, a, b, c):
     return np.exp(-np.exp(a + b*(x**c)))
 
-def mod_gompertz_invert(y, a, b, c):
-    y = np.array(y)
-    a = np.array(a)
-    b = np.array(b)
-    c = np.array(c)
-    return ( (np.log(-np.log(y))-a)/b) ** (-c)
+# def mod_gompertz_invert(y, a, b, c):
+#     y = np.array(y)
+#     a = np.array(a)
+#     b = np.array(b)
+#     c = np.array(c)
+#     return ( (np.log(-np.log(y))-a)/b) ** (-c)
     
 def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
     try:

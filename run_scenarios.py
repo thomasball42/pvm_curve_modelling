@@ -16,12 +16,15 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 200
-MULTIPROCESSING_ENABLED = False
-OVERWRITE_EXISTING_FILES = False
+NUM_WORKERS = 6
+MULTIPROCESSING_ENABLED = True
+OVERWRITE_EXISTING_FILES = True
 
 # Paths
-RESULTS_PATH = ""
+odpath = "E:\\OneDrive\\OneDrive - University of Cambridge"
+# odpath = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
+RESULTS_PATH = os.path.join(odpath, "Work\\P_curve_shape\\version2\\dat\\simulation_results\\results")
+
 
 # Simulation Parameters
 NUM_RUNS = 10000
@@ -35,8 +38,14 @@ QSD_SPACE = np.arange(0.05, 0.55, 0.03)
 RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 15)])
 SA_SPACE = np.arange(0.35, 0.95 + 0.15, 0.15)
 
+# # PARAM SPACES X
+# RMAX_SPACE = [0.158]
+# QSD_SPACE = [0.11]
+# SA_SPACE = [0.35]
+
 QREV_SPACE = np.linspace(1, 100, 5) / 100
-N0_SPACE = [0]  # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
+
+N0_SPACE = [0]# MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # Run Configuration
 RUNS = {
@@ -54,14 +63,14 @@ RUNS = {
         "num_runs": NUM_RUNS,
         "kwargs": {}
     },
-    "LogGrowthC2": {
+    "LogGrowthC": {
         "modelR": _models.Ri_model_C,
         "modelN": _models.Ni_log,
         "modelQ": _models.Q_normal_dist,
         "num_runs": NUM_RUNS,
         "kwargs": {}
     },
-    "LogGrowthD2": {
+    "LogGrowthD": {
         "modelR": _models.Ri_model_C,
         "modelN": _models.Ni_log,
         "modelQ": _models.Q_ornstein_uhlenbeck,
@@ -74,32 +83,49 @@ RUNS = {
 if not os.path.isdir(RESULTS_PATH):
     raise ValueError("RESULTS_PATH must be a valid directory")
 
-def generate_filename(run_name, qsd, qrev, Sa, Rmax, N0):
-    return f"{run_name}_QSD{round(qsd, 3)}_QREV{round(qrev, 3) if qrev else 'nan'}_RMAX{round(Rmax, 3)}_SA{round(Sa, 3) if Sa else 'nan'}_N0{round(N0, 3)}"
+def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=0, **kwargs):
+    parts = [
+        f"{run_name}",
+        f"QSD{round(qsd, 3)}",
+        f"QREV{round(qrev, 3)}" if qrev is not None else None,
+        f"RMAX{round(Rmax, 3)}" if Rmax is not None else None,
+        f"SA{round(Sa, 3)}" if Sa is not None else None,
+        f"N0{round(N0, 3)}" if N0 != 0 else None,
+    ]
+    if "allee_params_theta_upsil" in kwargs.keys():
+        ALLEE_param = kwargs["allee_params_theta_upsil"]
+        if isinstance(ALLEE_param, tuple) and len(ALLEE_param) == 2:
+            theta, upsil = ALLEE_param
+            parts.append(f"ALLEEtheta{round(theta, 3)}_ALLEEupsil{round(upsil, 3)}")
+    return "_".join(filter(None, parts))  # Remove None values
 
-def simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0):
+
+def simulate(run_name, run_params, qsd, qrev, Rmax=None, Sa=None, N0=0):
     modelR = run_params["modelR"]
     modelN = run_params["modelN"]
     modelQ = run_params["modelQ"]
     num_runs = run_params["num_runs"]
     kwargs = run_params["kwargs"]
-    if modelR == _models.Ri_model_C:
+    
+    B = None
+    if modelR == _models.Ri_model_C and Sa is not None and Rmax is not None:
         B = _models.getB(Rmax, Sa)
         if B is None:
-            return
-    else:
-        B = None
+            return  # Skip this simulation if B is invalid
 
-    filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0)
+    filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0, **kwargs)
     filepath = os.path.join(RESULTS_PATH, filename + ".csv")
-    
+
     if os.path.isfile(filepath) and not OVERWRITE_EXISTING_FILES:
         return
+
     q_params = (0, qsd, qrev)
     kwargs["q_params"] = q_params
+
     results_df = pd.DataFrame()
     for idx, K in enumerate(CARRYING_CAPACITIES):
-        N0 = K  # MODIFY AS NEEDED
+        N0 = K  # Modify as needed
+        
         if not MULTIPROCESSING_ENABLED:
             print(f"{filename}, {idx + 1} / {len(CARRYING_CAPACITIES)}")
         extinctions = 0
@@ -116,11 +142,15 @@ def simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0):
                     break
             if population.EXTANT and not population.RUNABORT:
                 run_count += 1
+
         if run_count > 0:
             survival_probability = 1 - extinctions / run_count
-            results_df.loc[len(results_df),
-                           ["runName", "K", "B", "QSD", "QREV", "RMAX", "N", "P", "SA", "N0"]] = [
-                               filename, K, B, qsd, qrev, Rmax, num_runs, survival_probability, Sa, N0]
+            results_df.loc[len(results_df), [
+                "runName", "K", "B", "QSD", "QREV", "RMAX", "N", "P", "SA", "N0"
+            ]] = [
+                filename, K, B, qsd, qrev, Rmax, num_runs, survival_probability, Sa, N0
+            ]
+
     results_df.to_csv(filepath)
 
 def main():
@@ -131,8 +161,8 @@ def main():
                 for Rmax in RMAX_SPACE:
                     for N0 in N0_SPACE:
                         qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
+                        sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
                         for qrev in qrev_iterator:
-                            sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
                             for Sa in sa_iterator:
                                 task_count += 1
         with ProcessPoolExecutor(max_workers=NUM_WORKERS) as executor:
@@ -143,7 +173,7 @@ def main():
                         for Rmax in RMAX_SPACE:
                             for N0 in N0_SPACE:
                                 sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
-                                qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
+                                qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]                               
                                 for qrev in qrev_iterator:
                                     for Sa in sa_iterator:
                                         futures.append(executor.submit(simulate, run_name, run_params, qsd, qrev, Rmax, Sa, N0))
@@ -157,8 +187,8 @@ def main():
                     for Rmax in RMAX_SPACE:
                         for N0 in N0_SPACE:
                             qrev_iterator = QREV_SPACE if run_params["modelQ"] == _models.Q_ornstein_uhlenbeck else [None]
+                            sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
                             for qrev in qrev_iterator:
-                                sa_iterator = SA_SPACE if run_params["modelR"] == _models.Ri_model_C else [None]
                                 for Sa in sa_iterator:
                                     simulate(run_name, run_params, qsd, qrev, Rmax, Sa, N0)
                                 
