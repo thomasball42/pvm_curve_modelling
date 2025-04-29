@@ -14,12 +14,8 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
-# my onedrive path, computer dependent..
-# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
 # dir that the simulation outputs are in
-dat_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\data")
+dat_fits_path = "..\\results\\data_fits"
 
 models = ["A", "B", "C", "D"]
 
@@ -44,13 +40,14 @@ for m, model in enumerate(models):
     g = dat.param_alpha
     
     g = g[(~np.isnan(g)) & (dat.MAX_Y == 1)]
+    g = g[g > 0]
     
-    # axs.boxplot(g, positions = [m])
-    
-    mean = g.mean()
-    stde = 3*np.std(g) / np.sqrt(len(g))
-    axs.scatter(m, mean, marker = "x", color = "k")
-    axs.errorbar(m, mean, yerr = stde, color = "k")
+    axs.boxplot(g, positions = [m])
+    print(f"{model} : {np.median(g)}")
+    # mean = g.mean()
+    # stde = 3*np.std(g) / np.sqrt(len(g))
+    # axs.scatter(m, mean, marker = "x", color = "k")
+    # axs.errorbar(m, mean, yerr = stde, color = "k")
     
 axs.set_ylim(-0.5, 1.25)
 axs.set_xticks(np.arange(len(models)), labels = [f"Model_{x}" for x in models])

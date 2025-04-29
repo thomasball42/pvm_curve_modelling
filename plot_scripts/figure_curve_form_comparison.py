@@ -16,12 +16,8 @@ import matplotlib.ticker
 sys.path.append("..")
 import _curve_fit
 
-# my onedrive path, computer dependent..
-od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
 # dir that the simulation outputs are in
-dat_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\simulation_results\\results_curve_comparison")
+dat_path = "..\\results\\simulation_results\\results_curve_comparison"
 
 f = []
 for path, subdirs, files in os.walk(dat_path):
@@ -105,30 +101,33 @@ label = f"Modified gompertz  (R2:{round(R2, nnnn(R2)+1)})"
 ax.plot(xff, 1 - func(xff, *params), color = "g", label = label , **kwargs)
 
 
-func2 = _curve_fit.logistic
-params2, y_predicted2, R2_2, residuals_2 = _curve_fit.fit(func2, x, y, init_guess=[1, 0.5, 200])
-label = f"Logistic  (R2:{round(R2_2, nnnn(R2_2)+1)})"
-ax.plot(xff, 1 - func2(xff, *params2), color = c(0.5), label = label, **kwargs)
+# func2 = _curve_fit.logistic
+# params2, y_predicted2, R2_2, residuals_2 = _curve_fit.fit(func2, x, y, init_guess=[1, 0.5, 200])
+# label = f"Logistic  (R2:{round(R2_2, nnnn(R2_2)+1)})"
+# ax.plot(xff, 1 - func2(xff, *params2), color = c(0.5), label = label, **kwargs)
 
 
 def power(x, z, x0, y0): 
     return y0 + ((x - x0) ** z)
 def powerX(x, x0, y0): 
-    return y0 + ((x - x0) ** 0.25)
+    return y0+ ((x - x0) ** 0.25)
 
-func3 = powerX
-params3, y_predicted3, R2_3, residuals_3 = _curve_fit.fit(func3, xx, yy, init_guess=[5, 1])
+def powerX2(x, x0, z0):
+    return (z0 *( (x - x0) ** 0.25))
+
+func3 = powerX2
+params3, y_predicted3, R2_3, residuals_3 = _curve_fit.fit(func3, xx[7:40], yy[7:40], init_guess=[20, 0.26])
 label = f"Power law [0.25]  (R2:{round(R2_3, nnnn(R2_3)+1)})"
-ax.plot(xff, 1 - func3(xff, *params3), color = c(0.9), label = label, **kwargs)
-# ax.plot(xff, 1 - func3(xff, 0.25, 0, 0), color = "g", label = label)
+ax.plot(xff, 1.00 - func3(xff, *params3), color = c(0.9), label = label, **kwargs)
 
+# ax.plot(xff, func3(xff, *params3), color = c(0.9), label = label, **kwargs)
 
-func4 = _curve_fit.basic_gomp
-params4, y_predicted4, R2_4, residuals_4 = _curve_fit.fit(func4, xx, yy)
-label = f"Simple gompertz  (R2:{round(R2_4, nnnn(R2_4)+1)})"
-# ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, **kwargs, linestyle = "--")
-kwargs.pop("linestyle", None)
-ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, linestyle = "--", **kwargs, )
+# func4 = _curve_fit.basic_gomp
+# params4, y_predicted4, R2_4, residuals_4 = _curve_fit.fit(func4, xx, yy)
+# label = f"Simple gompertz  (R2:{round(R2_4, nnnn(R2_4)+1)})"
+# # ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, **kwargs, linestyle = "--")
+# kwargs.pop("linestyle", None)
+# ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, linestyle = "--", **kwargs, )
 
 ax.set_xscale("log", base = 2)
 ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())

@@ -11,10 +11,12 @@ This script is a bit of a mess. Aim to tidy at some point.
 import os
 import pandas as pd
 import numpy as np
+import sys 
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
+sys.path.append("..")
 import _curve_fit
 
 scale_1_0 = False
@@ -26,9 +28,9 @@ od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
 # dir that the simulation outputs are in
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\simulation_results\\results_model_A_bfit")
+results_path = "..\\results\\simulation_results\\results_main"
 # path to output fitted data
-data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\data_fits_A_basic_gompertz.csv")
+data_fits_path = "..\\results\\data_fits\\data_fits_D_basic_gompertz.csv"
 
 
 # =============================================================================
@@ -38,8 +40,8 @@ f = []
 for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
-# f = [file for file in f if ".csv" in file]
-f = f[:]
+f = [file for file in f if ".csv" in file and "LogGrowthD" in file]
+# f = f[]
 
 #%%
 n = int(plot_curves)+int(plot_pspace)
@@ -49,6 +51,7 @@ if n > 0:
 first_entry = True
 for i, file in enumerate(f[:]):
     
+    print(i / len(f))
     if os.path.isfile(data_fits_path) and not first_entry:
         data_fits = pd.read_csv(data_fits_path, index_col=0)
     else:
@@ -67,7 +70,7 @@ for i, file in enumerate(f[:]):
     
     try:
         qrev = dat.QREV.unique().item()
-        if not model == "LogGrowthD2":
+        if "LogGrowthD" not in model:
             qrev = np.nan
     except AttributeError:
         qrev = np.nan
@@ -111,7 +114,10 @@ for i, file in enumerate(f[:]):
     func = _curve_fit.basic_gomp
     param_names = ("bg_param_a", "bg_param_b")
     params = tuple([np.nan for _ in param_names])
-    ret = _curve_fit.fit(func, x, y)
+    try:    
+        ret = _curve_fit.fit(func, x, y)
+    except RuntimeError:
+        pass
     
     if not fit and not ret == None:
         
@@ -133,7 +139,6 @@ for i, file in enumerate(f[:]):
         else: kX = ((np.log( -np.log(X)) - a) / b ) ** (1/alpha)
         return kX
     
-    
     kX_vals = [get_kX2(X, *params) for X in kXs]
     kX_names = [f"k{int(X*100)}" for X in kXs]
     
@@ -153,7 +158,6 @@ for i, file in enumerate(f[:]):
                         model, runName, rmax, qsd, qrev, B, sa, 
                         model_name, *params, R2, rsd, max_y, *kX_vals, dPdK_max]
                             
-    print(R2)
     # # PLOT CURVES AND FITS
     if plot_curves and max_y == 1:
         if n>1:

@@ -16,15 +16,12 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 6
+NUM_WORKERS = 200
 MULTIPROCESSING_ENABLED = True
 OVERWRITE_EXISTING_FILES = True
 
 # Paths
-odpath = "E:\\OneDrive\\OneDrive - University of Cambridge"
-# odpath = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-RESULTS_PATH = os.path.join(odpath, "Work\\P_curve_shape\\version2\\dat\\simulation_results\\results")
-
+RESULTS_PATH = "results\\simulation_results\\results_main"
 
 # Simulation Parameters
 NUM_RUNS = 10000
@@ -37,11 +34,6 @@ YEARS = np.arange(0, NUM_YEARS, 1)
 QSD_SPACE = np.arange(0.05, 0.55, 0.03)
 RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 15)])
 SA_SPACE = np.arange(0.35, 0.95 + 0.15, 0.15)
-
-# # PARAM SPACES X
-# RMAX_SPACE = [0.158]
-# QSD_SPACE = [0.11]
-# SA_SPACE = [0.35]
 
 QREV_SPACE = np.linspace(1, 100, 5) / 100
 

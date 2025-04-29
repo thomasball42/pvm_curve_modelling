@@ -19,16 +19,16 @@ import _curve_fit
 
 scale_1_0 = False
 plot_pspace = False
-plot_curves = True
+plot_curves = False
 
 # my onedrive path, computer dependent..
 # od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
 od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
 
 # dir that the simulation outputs are in
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results3_CD2")
+results_path = "results\\simulation_results\\results_main"
 # path to output fitted data
-data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\data_fits_A.csv")
+data_fits_path = "results\\data_fits\\data_fits_CX.csv"
 
 
 # =============================================================================
@@ -38,7 +38,7 @@ f = []
 for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
-# f = [file for file in f if ".csv" in file]
+f = [file for file in f if ".csv" in file and "LogGrowthC" in file]
 
 
 #%%
@@ -48,6 +48,8 @@ if n > 0:
 
 first_entry = True
 for i, file in enumerate(f[:]):
+    
+    print(i / len(f))
     
     if os.path.isfile(data_fits_path) and not first_entry:
         data_fits = pd.read_csv(data_fits_path, index_col=0)

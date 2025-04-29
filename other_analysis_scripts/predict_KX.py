@@ -24,16 +24,13 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
 ts = 0.20
-KX = 50
+KX = 90
 
 inputs_list = ["RMAX", "QSD", "QREV", "SA"]
 outputs_list = ["param_a", "param_b", "param_alpha"]
 
-od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
-output_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\data")
-outfile_name = os.path.join(output_path, f"k{KX}_linear_parameters.csv")
+output_path = "..\\results\\predictive_models"
+outfile_name = os.path.join(output_path, f"linear_model_k{KX}_parameters.csv")
 
 
 fig, axs = plt.subplots(2,2, sharex=True, sharey=True)
@@ -43,7 +40,7 @@ odf = pd.DataFrame()
 KXX = f"k{100-KX}"
 
 for zi, z in enumerate(["A", "B", "C", "D"]):
-    results_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\data", f"data_fits_{z}.csv")
+    results_path = f"..\\results\\data_fits\\data_fits_{z}.csv"
     
     # load data
     df = pd.read_csv(results_path, index_col = 0)

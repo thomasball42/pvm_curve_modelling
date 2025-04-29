@@ -18,12 +18,8 @@ import _curve_fit
 
 clip_x = False
 
-# my onedrive path, computer dependent..
-od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
 # dir that the simulation outputs are in
-dat_path = os.path.join(od_path, "Work\\P_curve_shape\\version2\\dat\\simulation_results\\results_curve_comparison")
+dat_path = "..\\results\\simulation_results\\results_curve_comparison"
 
 f = []
 for path, subdirs, files in os.walk(dat_path):
@@ -112,7 +108,7 @@ for fi, file in enumerate(f):
     
     func4 = _curve_fit.basic_gomp
     params4, y_predicted4, R2_4, residuals_4 = _curve_fit.fit(func4, xx, yy)
-    label = f"Simple gompertz  (R2:{round(R2_4, nnnn(R2_4)+1)})"
+    label = f"Standard gompertz  (R2:{round(R2_4, nnnn(R2_4)+1)})"
     ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, **kwargs)
     
 
