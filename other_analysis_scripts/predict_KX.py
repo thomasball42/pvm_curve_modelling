@@ -32,21 +32,23 @@ outputs_list = ["param_a", "param_b", "param_alpha"]
 output_path = "..\\results\\predictive_models"
 outfile_name = os.path.join(output_path, f"linear_model_k{KX}_parameters.csv")
 
+models = ["A", "B", "C", "D"]
 
-fig, axs = plt.subplots(2,2, sharex=True, sharey=True)
+fig, axs = plt.subplots(2, (len(models) // 2) + (len(models) % 2), sharex=True, sharey=True)
+axs = axs.ravel()
 
 odf = pd.DataFrame()
 
 KXX = f"k{100-KX}"
 
-for zi, z in enumerate(["A", "B", "C", "D"]):
+for zi, z in enumerate(models):
     results_path = f"..\\results\\data_fits\\data_fits_{z}.csv"
     
     # load data
     df = pd.read_csv(results_path, index_col = 0)
     df = df[~df.model_name.isnull()]
     
-    def get_polys(df, order=4):
+    def get_polys(df, order=6):
         poly = sklearn.preprocessing.PolynomialFeatures(order)
         arr = poly.fit_transform(df)
         names= poly.get_feature_names_out()
@@ -84,9 +86,6 @@ for zi, z in enumerate(["A", "B", "C", "D"]):
         mse = sklearn.metrics.mean_squared_error(y_test, y_pred)
         r2 = sklearn.metrics.r2_score(y_test, y_pred)
         
-        print(f"{param.upper()}")
-        print(f"MSE: {mse}, R2: {r2}")
-        
         coefs = model.coef_
         
         rounder = 3
@@ -102,10 +101,10 @@ for zi, z in enumerate(["A", "B", "C", "D"]):
         odf = pd.concat([odf, xdf])
         
         # plot
-        r = zi //2
-        c = zi % 2
+        # r = zi //2
+        # c = zi % 2
         
-        ax = axs[r, c]
+        ax = axs[zi]
         # ax.set_xlim(0, 160)
         # ax.set_ylim(-10, 160)
         ax.scatter(dat, model.predict(XP), c = "k", alpha = 0.5, marker = "x",label = f"R2: {round(r2, 5)}")
@@ -117,6 +116,6 @@ fig.text(0.005, 0.5, f'Predicted k{KX}', va='center', rotation='vertical')
 fig.set_size_inches(7,7)
 fig.tight_layout()
 
-odf.to_csv(outfile_name, index = False)
+# odf.to_csv(outfile_name, index = False)
     
     

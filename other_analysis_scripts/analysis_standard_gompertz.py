@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 22 13:55:22 2024
+Created on Tue Apr 15 13:37:41 2025
 
-@author: Thomas Ball
+@author: tom
 
 This script is a bit of a mess. Aim to tidy at some point.
 
@@ -11,25 +11,25 @@ This script is a bit of a mess. Aim to tidy at some point.
 import os
 import pandas as pd
 import numpy as np
+import sys 
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
+sys.path.append("..")
 import _curve_fit
 
 scale_1_0 = False
 plot_pspace = False
 plot_curves = False
-overwrite = True
 
 # dir that the simulation outputs are in
-results_path = "results\\simulation_results\\results_main"
+results_path = "..\\results\\simulation_results\\results_main"
 
-models = ["A", "B", "C", "D"]
-for mm in models:
-    
+for mm in ["D"]:
     # path to output fitted data
-    data_fits_path = f"results\\data_fits\\data_fits_{mm}XX.csv"
+    data_fits_path = f"..\\results\\data_fits\\data_fits_{mm}_basic_gompertz.csv"
+    
     
     # =============================================================================
     # Find data
@@ -39,32 +39,25 @@ for mm in models:
         for name in files:
             f.append(os.path.join(path, name))
     f = [file for file in f if ".csv" in file and f"LogGrowth{mm}" in file]
-    
+  
     #%%
     n = int(plot_curves)+int(plot_pspace)
     if n > 0:
         fig, axs = plt.subplots(1, n)
     
-    # Load existing data fits if they exist
-    if os.path.isfile(data_fits_path) and not overwrite:
-        data_fits = pd.read_csv(data_fits_path, index_col=0)
-        existing_runs = set(data_fits['runName'].unique())
-    else:
-        data_fits = pd.DataFrame()
-        existing_runs = set()
-    
+    first_entry = True
     for i, file in enumerate(f[:]):
         
         print(mm, i / len(f))
-        
+        if os.path.isfile(data_fits_path) and not first_entry:
+            data_fits = pd.read_csv(data_fits_path, index_col=0)
+        else:
+            data_fits = pd.DataFrame()
+            first_entry = False
+            
         dat = pd.read_csv(file)
         runName = dat.runName.unique().item()
         
-        # Skip if this run already exists in the output file
-        if runName in existing_runs:
-            print(f"Skipping {runName} - already processed")
-            continue
-            
         ## SETUP
         ddf = pd.DataFrame()
     
@@ -91,59 +84,40 @@ for mm in models:
         except AttributeError:
             sa = None
             
-        if scale_1_0:
-            reversed_arr = y[::-1]
-            first_non_one_index = np.argmax(reversed_arr != 1)
-            tail_start_index = len(y) - first_non_one_index
-            y = y[:tail_start_index]
-            if len(x) == tail_start_index:
-                x = x/ x.max()
-            else:
-                x = x[:tail_start_index] / x[tail_start_index]
-        
         # initialise fitting
         fit = False
         model_name = np.nan
         R2 = np.nan
         resids = np.nan
-        rsd = np.nan
-        rmse = np.nan
-        
-        # TRY GOMPERTZ
-        func = _curve_fit.mod_gompertz
-        param_names = ("param_a", "param_b", "param_alpha")
+            
+        func = _curve_fit.basic_gomp
+        param_names = ("bg_param_a", "bg_param_b")
         params = tuple([np.nan for _ in param_names])
-        ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                alpha_space = np.arange(0, 5, 0.001), 
-                                ylim=(0.0001, 0.9999), 
-                                plot_lins=False,)
-        if ret == None:
-            ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                    alpha_space = np.arange(-5, 0, 0.001), # we discard these fits anyway
-                                    ylim=(0.05, 0.95), 
-                                    plot_lins=False)
+        try:    
+            ret = _curve_fit.fit(func, x, y)
+        except RuntimeError:
+            pass
+        
         if not fit and not ret == None:
+            
             fit = True
             params, y_predicted, R2, resids = ret
             model_name = func.__name__
-               
+        
         # NOTE THAT kX is 1-X due to reframing of P_S(K) -> P_E(K)
         # calc kX, rsd, dPdK_max
         xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
         yff = func(xff, *params)
         kXs = np.arange(0.1, 1.0, 0.1)
-        def get_kX(X, xff, yff):
-            gtX = xff[yff >= X]
-            if len(gtX) > 0: kX = gtX[0]
-            else: kX = np.nan
-            return kX
-        def get_kX2(X, a, b, alpha):
+        
+        
+        def get_kX2(X, a, b, alpha = 1):
             """analytical"""
             if np.isnan(a):
                 kX = np.nan
             else: kX = ((np.log( -np.log(X)) - a) / b ) ** (1/alpha)
             return kX
-    
+        
         kX_vals = [get_kX2(X, *params) for X in kXs]
         kX_names = [f"k{int(X*100)}" for X in kXs]
         
@@ -165,9 +139,8 @@ for mm in models:
                             model, runName, rmax, qsd, qrev, B, sa, 
                             model_name, *params, R2, rsd, rmse, max_y, *kX_vals, dPdK_max]
                                 
-        print(R2)
         # # PLOT CURVES AND FITS
-        if plot_curves:
+        if plot_curves and max_y == 1:
             if n>1:
                 ax = axs[-1]
             else:
@@ -201,10 +174,8 @@ for mm in models:
                 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
             ax.set_ylabel(f"Probability of extinction (N={round(N)})")
             ax.set_xlabel("Carrying capacity K")
-            
             fig.set_size_inches(12, 7)
             fig.tight_layout()
-            
             
         if plot_pspace:
             if n>1:
@@ -223,11 +194,12 @@ for mm in models:
             ax.scatter(qsd, rmax, color = c, s = 70, marker = marker)
             ax.set_ylabel("R$_{max}$")
             ax.set_xlabel("Stochasicity SD")
-            
+        
+        print(file)
+
         data_fits = pd.concat([data_fits, ddf])
         data_fits.to_csv(data_fits_path)
-        existing_runs.add(runName)  # Add to set of processed runs
-    
+
     if plot_pspace:
         if n>1:
             ax = axs[0]
@@ -235,6 +207,10 @@ for mm in models:
         sm = plt.cm.ScalarMappable(cmap='viridis', norm=norm)
         cbar = plt.colorbar(sm, ax=ax)
         cbar.set_label('R2')
-        
+    
+        # ax.legend()
         fig.set_size_inches(12, 7)
         fig.tight_layout()
+    
+    
+    

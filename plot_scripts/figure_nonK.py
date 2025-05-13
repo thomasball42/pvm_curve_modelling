@@ -8,29 +8,26 @@ Created on Wed Jul 24 10:36:27 2024
 import os
 import pandas as pd
 import numpy as np
-import scipy.stats
 import math
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
-from scipy.stats import gaussian_kde as kde
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import griddata
 
+import sys
+sys.path.append("..")
 import _curve_fit
 
 plot_curves = True
 
-# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
 fig, axs = plt.subplots(1, 2)
+
+clip_x = True
 
 for r, rpath in enumerate(["results_propN0", 
                            "results_fixedN0", ]):
     ax = axs[r]
         
-    results_path = os.path.join(od_path, f"Work\\P_curve_shape\\dat\\{rpath}")
+    results_path = f"..\\results\\simulation_results\\{rpath}"
     # =============================================================================
     # Load data
     # =============================================================================
@@ -41,7 +38,7 @@ for r, rpath in enumerate(["results_propN0",
     f = [file for file in f if ".csv" in file]
     f = [k for k in f if "LGA" in k]
     if r == 1:
-        f = [f[i] for i in [5, 0, 1, 2, 3, 4]]
+        f = sorted(f, key=lambda x: float(x.split('N0')[-1].split('.csv')[0]))
 
     for i, file in enumerate(f[:]):
             
@@ -68,7 +65,13 @@ for r, rpath in enumerate(["results_propN0",
         y = dat.P
         
         max_y = y.max()
+        min_y = y.min()
         
+        if max_y < 1 or min_y > 0:
+            print(min_y, max_y, file)
+            
+            continue 
+            
         try:
             sa = dat.SA.unique().item()
         except AttributeError:
@@ -97,7 +100,6 @@ for r, rpath in enumerate(["results_propN0",
             fit = True
             params, y_predicted, R2, resids = ret
             model_name = func.__name__
-               
     
         # calc k50, rsd, dPdK_max
         xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
@@ -174,10 +176,10 @@ for r, rpath in enumerate(["results_propN0",
                 if "over" in runName:
                     label = f"$N_0$=K; $r^2$: {round(R2, nnnn+1)}"
                 else:
-                    val = float(runName.split("_")[-1])
-                    sn = f"$10^{int(math.log10(abs(val)))}$"
+                    val = float(runName.split("_")[-1].split("N0")[-1])
+                    # sn = f"$10^{int(math.log10(abs(val)))}$"
                     # label = f"$N_0$={sn}; $r^2$: {round(R2, nnnn+1)}"
-                    label = f"$N_0$={sn}"
+                    label = f"$N_0$=$2^{{{int(np.log2(val))}}}$"
                 
             ax.scatter(x, 1 - y, color=c, alpha = 0.9, marker = marker, label = label)
             xff = np.geomspace(x.min(), x.max(), num = 100000)
@@ -191,8 +193,11 @@ for r, rpath in enumerate(["results_propN0",
                 return f'$10^{{{int(np.log10(x))}}}$'
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
     
-    ax.legend(fontsize=11)
-    
+    ax.legend(fontsize=9)
+
+if clip_x:
+    axs[0].set_xlim(1E1, 0.2E3)
+    # axs[1].set_xlim(1E1, 0.2E3)
 axs[0].text(0.05, 0.95, "a", transform=axs[0].transAxes, ha='left', va='top', fontsize=12)
 axs[1].text(0.05, 0.95, "b", transform=axs[1].transAxes, ha='left', va='top', fontsize=12)
 axs[0].set_ylabel(f"Probability of extinction $P_E$")

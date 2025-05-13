@@ -13,9 +13,7 @@ import os
 
 import _curve_fit
 
-od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\fits_main")
+results_path = "..\\results\\data_fits"
 
 g_inv = _curve_fit.mod_gompertz
 

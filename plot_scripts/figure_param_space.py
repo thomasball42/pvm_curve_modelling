@@ -17,14 +17,11 @@ from scipy.stats import gaussian_kde as kde
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import griddata
 
-od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-# od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
 fig = plt.figure()
 axs = []
 for i, I in enumerate(["A", "B"]):
     
-    results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\fits_main", f"data_fits_{I}.csv")
+    results_path = f"..\\results\\data_fits\\data_fits_{I}.csv"
     
     ddf = pd.read_csv(results_path, index_col = 0)
     ddf = ddf[ddf.MAX_Y == 1]

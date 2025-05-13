@@ -18,11 +18,14 @@ scale_1_0 = False
 plot_pspace = False
 plot_curves = True
 
-# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
+results_path = "..\\results\\simulation_results\\results_main"
 
-results_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\results_plot")
-# data_fits_path = os.path.join(od_path, "Work\\P_curve_shape\\dat\\data_fits_D.csv")
+sims_to_plot = [   
+     "LogGrowthA_QSD0.11_QREV1.0_RMAX0.158_SAnan_N00.csv",
+     "LogGrowthB_QSD0.11_QREV1.0_RMAX0.158_SAnan_N00.csv",
+     "LogGrowthC2_QSD0.11_QREVnan_RMAX0.158_SA0.35_N00.csv",
+     "LogGrowthD2_QSD0.11_QREV0.258_RMAX0.158_SA0.35_N00.csv",
+    ]
 
 # =============================================================================
 # Find data
@@ -31,12 +34,12 @@ f = []
 for path, subdirs, files in os.walk(results_path):
     for name in files:
         f.append(os.path.join(path, name))
-f = [file for file in f if ".csv" in file]
+f = [file for file in f if os.path.split(file)[-1] in sims_to_plot]
 
 fig, ax = plt.subplots()
 
 for i, file in enumerate(f[:]):
-        
+    
     dat = pd.read_csv(file)
     runName = dat.runName.unique().item()
     
@@ -153,7 +156,7 @@ for i, file in enumerate(f[:]):
             c = "m"
             marker = "o"
         else:
-            c = matplotlib.cm.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
+            c = matplotlib.colormaps['viridis']((R2 - 0.990)/(1-0.990))
             marker = "o"
         mmm = {"LogGrowthA":0.05,
                "LogGrowthB":0.33,

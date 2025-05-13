@@ -16,7 +16,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 200
+NUM_WORKERS = 10
 MULTIPROCESSING_ENABLED = True
 OVERWRITE_EXISTING_FILES = True
 
@@ -37,7 +37,7 @@ SA_SPACE = np.arange(0.35, 0.95 + 0.15, 0.15)
 
 QREV_SPACE = np.linspace(1, 100, 5) / 100
 
-N0_SPACE = [0]# MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
+N0_SPACE = [0] # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
 # Run Configuration
 RUNS = {
@@ -116,7 +116,7 @@ def simulate(run_name, run_params, qsd, qrev, Rmax=None, Sa=None, N0=0):
 
     results_df = pd.DataFrame()
     for idx, K in enumerate(CARRYING_CAPACITIES):
-        N0 = K  # Modify as needed
+        N0 = K  # Modify as needed for non-K initialisations
         
         if not MULTIPROCESSING_ENABLED:
             print(f"{filename}, {idx + 1} / {len(CARRYING_CAPACITIES)}")

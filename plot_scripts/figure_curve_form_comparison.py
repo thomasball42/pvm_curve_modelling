@@ -34,6 +34,7 @@ ddf = pd.DataFrame()
 
 model = runName.split("_")[0]
 qsd = dat.QSD.unique().item()
+rmax = dat.RMAX.unique().item()
 N = dat.N.unique().item()
 x = dat.K 
 y = dat.P
@@ -101,16 +102,10 @@ label = f"Modified gompertz  (R2:{round(R2, nnnn(R2)+1)})"
 ax.plot(xff, 1 - func(xff, *params), color = "g", label = label , **kwargs)
 
 
-# func2 = _curve_fit.logistic
-# params2, y_predicted2, R2_2, residuals_2 = _curve_fit.fit(func2, x, y, init_guess=[1, 0.5, 200])
-# label = f"Logistic  (R2:{round(R2_2, nnnn(R2_2)+1)})"
-# ax.plot(xff, 1 - func2(xff, *params2), color = c(0.5), label = label, **kwargs)
-
-
-def power(x, z, x0, y0): 
-    return y0 + ((x - x0) ** z)
-def powerX(x, x0, y0): 
-    return y0+ ((x - x0) ** 0.25)
+func2 = _curve_fit.logistic
+params2, y_predicted2, R2_2, residuals_2 = _curve_fit.fit(func2, x, y, init_guess=[1, 0.5, 200])
+label = f"Logistic  (R2:{round(R2_2, nnnn(R2_2)+1)})"
+ax.plot(xff, 1 - func2(xff, *params2), color = c(0.5), label = label, **kwargs)
 
 def powerX2(x, x0, z0):
     return (z0 *( (x - x0) ** 0.25))
@@ -118,16 +113,26 @@ def powerX2(x, x0, z0):
 func3 = powerX2
 params3, y_predicted3, R2_3, residuals_3 = _curve_fit.fit(func3, xx[7:40], yy[7:40], init_guess=[20, 0.26])
 label = f"Power law [0.25]  (R2:{round(R2_3, nnnn(R2_3)+1)})"
-ax.plot(xff, 1.00 - func3(xff, *params3), color = c(0.9), label = label, **kwargs)
+ax.plot(xff, 1.035 - func3(xff, *params3), color = c(0.9), label = label, **kwargs)
+ax.plot((xff[0], 20), (1,1,),color = c(0.9))
 
-# ax.plot(xff, func3(xff, *params3), color = c(0.9), label = label, **kwargs)
 
-# func4 = _curve_fit.basic_gomp
-# params4, y_predicted4, R2_4, residuals_4 = _curve_fit.fit(func4, xx, yy)
-# label = f"Simple gompertz  (R2:{round(R2_4, nnnn(R2_4)+1)})"
-# # ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, **kwargs, linestyle = "--")
-# kwargs.pop("linestyle", None)
-# ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, linestyle = "--", **kwargs, )
+def lande(x, a,  b0, c0):
+    """
+    P(EXT) = ( a  / K)^( Abs[ (rmax - s/2)  / s ] - (d - s/2)/ s )
+    """
+    poww = ( np.abs((b0-(0.5*c0))/c0)  + ((b0-(0.5*c0))/c0) )
+    print(poww) 
+    y = 1- (a / x) ** poww 
+    y[y<0] = 0
+    
+    return y
+    
+func5 = lande
+params5, y_predicted5, R2_5, residuals_5 = _curve_fit.fit(func5, xx[7:40], yy[7:40], init_guess=[10, rmax, qsd])
+label = f"Lande  (R2:{round(R2_5, nnnn(R2_5)+1)})"
+ax.plot(xff, 1-func5(xff, *params5), color = c(0.1), label = label, **kwargs)
+
 
 ax.set_xscale("log", base = 2)
 ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())

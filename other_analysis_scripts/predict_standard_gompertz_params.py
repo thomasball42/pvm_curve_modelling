@@ -50,7 +50,7 @@ for model_name in ["A", "B", "C", "D"]:
         names= poly.get_feature_names_out()
         return pd.DataFrame(arr, columns = names)
     
-    XP = get_polys(X, order = 4)    
+    XP = get_polys(X, order = 6)    
     names = XP.columns
     Y = df.loc[:, df.columns.isin(outputs_list)]
     
@@ -74,8 +74,7 @@ for model_name in ["A", "B", "C", "D"]:
         mse = sklearn.metrics.mean_squared_error(y_test, y_pred)
         r2 = sklearn.metrics.r2_score(y_test, y_pred)
         
-        print(f"{param.upper()}")
-        print(f"MSE: {mse}, R2: {r2}")
+        print(f"{model_name}, {param.upper()}", f" MSE: {mse}, R2: {r2}")
         
         coefs = model.coef_
         
