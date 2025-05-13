@@ -28,6 +28,8 @@ for r, rpath in enumerate(["results_propN0",
     ax = axs[r]
         
     results_path = f"..\\results\\simulation_results\\{rpath}"
+    data_fits_path = f"..\\results\\data_fits\\data_fits_{rpath.split('_')[-1]}.csv"
+    
     # =============================================================================
     # Load data
     # =============================================================================
@@ -46,7 +48,10 @@ for r, rpath in enumerate(["results_propN0",
         runName = dat.runName.unique().item()
         
         ## SETUP
-        ddf = pd.DataFrame()
+        if os.path.isfile(data_fits_path):
+            ddf = pd.read_csv(data_fits_path, index_col=0)
+        else:
+            ddf = pd.DataFrame()
     
         model = runName.split("_")[0]
         qsd = dat.QSD.unique().item()
@@ -66,11 +71,6 @@ for r, rpath in enumerate(["results_propN0",
         
         max_y = y.max()
         min_y = y.min()
-        
-        if max_y < 1 or min_y > 0:
-            print(min_y, max_y, file)
-            
-            continue 
             
         try:
             sa = dat.SA.unique().item()
@@ -100,7 +100,7 @@ for r, rpath in enumerate(["results_propN0",
             fit = True
             params, y_predicted, R2, resids = ret
             model_name = func.__name__
-    
+            
         # calc k50, rsd, dPdK_max
         xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
         yff = func(xff, *params)
@@ -137,8 +137,13 @@ for r, rpath in enumerate(["results_propN0",
                             "model_name", *param_names, "R2", "RSD", "MAX_Y", *kX_names, "dPdK_tp"]] = [
                             model, runName, rmax, qsd, qrev, B, sa, 
                             model_name, *params, R2, rsd, max_y, *kX_vals, dPdK_max]
-                                
-        print(R2)
+         
+        ddf.to_csv(data_fits_path)
+        
+        if max_y < 1 or min_y > 0:
+            print(min_y, max_y, file)
+            continue 
+        
         # # PLOT CURVES AND FITS
         if plot_curves:
             label = f"Model {model.strip('LogGrowth')}"
