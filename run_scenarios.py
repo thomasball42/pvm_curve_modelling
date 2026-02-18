@@ -8,28 +8,25 @@ Created on Mon May 20 16:21:29 2024
 import numpy as np
 import pandas as pd
 import os
+from pathlib import Path
 
 import _models
-import _population
 import _simulate
 
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 10
+NUM_WORKERS = 32
 MULTIPROCESSING_ENABLED = True
 OVERWRITE_EXISTING_FILES = True
 
 # Paths
-RESULTS_PATH = "..\\results\\simulation_results\\results_tte"
+RESULTS_PATH = Path("..", "results", "simulation_results", "results_main")
 
 # Simulation Parameters
 NUM_RUNS = 10000
-NUM_YEARS = 100
-CARRYING_CAPACITIES = np.geomspace(1, 3000000, num=200)
-CARRYING_CAPACITIES = np.unique(np.round(CARRYING_CAPACITIES))
-YEARS = np.arange(0, NUM_YEARS, 1)
+CARRYING_CAPACITIES = np.unique(np.round(np.geomspace(1, 3000000, num=200)))
 
 # Parameter Spaces
 QSD_SPACE = np.arange(0.05, 0.55, 0.03)
@@ -39,6 +36,13 @@ QREV_SPACE = np.linspace(1, 100, 5) / 100
 YEARS_SPACE = [100]
 
 N0_SPACE = [0] # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
+
+#CUSTOM PARAMS
+# QSD_SPACE = [0.11]
+# RMAX_SPACE = [0.209]
+# SA_SPACE = [0.35]
+# QREV_SPACE = [0.505]
+# YEARS_SPACE = np.geomspace(10, 250, num=20, dtype=int)
 
 # Run Configuration
 RUNS = {
