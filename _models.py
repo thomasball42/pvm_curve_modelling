@@ -131,7 +131,7 @@ def Ri_model_C(Rmax, species, **kwargs):
 # =============================================================================
 # Extras
 # =============================================================================
-def getB(Rmax, Sa):
+def getB(Rmax, Sa): # small birds
     B = (1/Rmax) - (Sa / (np.exp(Rmax) - Sa))
     if np.isinf(B):
         B = None

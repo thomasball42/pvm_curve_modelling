@@ -7,7 +7,7 @@ import numpy as np
 import _models
 import _population
 
-def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=0, year_threshold=100, **kwargs):
+def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=None, year_threshold=100, **kwargs):
     parts = [
         f"{run_name}",
         f"QSD{round(qsd, 3)}",
@@ -15,7 +15,7 @@ def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=0, year_t
         f"RMAX{round(Rmax, 3)}" if Rmax is not None else None,
         f"SA{round(Sa, 3)}" if Sa is not None else None,
         f"QREV{round(qrev, 3)}" if qrev is not None else None,
-        f"N0{round(N0, 3)}" if N0 != 0 else None,    
+        f"N0{round(N0, 3)}" if N0 is not None else None,    
     ]
 
     if "allee_params_theta_upsil" in kwargs.keys():
@@ -27,18 +27,20 @@ def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=0, year_t
 
 def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
              CARRYING_CAPACITIES,
-             run_name, run_params, qsd, qrev, Rmax=None, Sa=None, N0=0, year_threshold=100):
+             run_name, run_params, qsd, qrev, Rmax=None, Sa=None, N0=None, B=None, year_threshold=100, 
+             **kwargs):
+    
     modelR = run_params["modelR"]
     modelN = run_params["modelN"]
     modelQ = run_params["modelQ"]
     num_runs = run_params["num_runs"]
     kwargs = run_params["kwargs"]
     
-    B = None
-    if modelR == _models.Ri_model_C and Sa is not None and Rmax is not None:
-        B = _models.getB(Rmax, Sa)
-        if B is None:
-            return  # Skip this simulation if B is invalid
+    if B is None:
+        if modelR == _models.Ri_model_C and Sa is not None and Rmax is not None:
+            B = _models.getB(Rmax, Sa)
+            if B is None:
+                return  # Skip this simulation if B is invalid
 
     filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0, year_threshold, **kwargs)
     filepath = os.path.join(RESULTS_PATH, filename + ".csv")
@@ -51,7 +53,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
 
     results_df = pd.DataFrame()
     for idx, K in enumerate(CARRYING_CAPACITIES):
-        N0 = K  # Modify as needed for non-K initialisations
+        N0 = K if N0 is None else N0  # Modify as needed for non-K initialisations
         
         if not MULTIPROCESSING_ENABLED:
             print(f"{filename}, {idx + 1} / {len(CARRYING_CAPACITIES)}")
@@ -80,7 +82,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             mean_tte_sem = np.std(year_extinct) / np.sqrt(extinctions) if extinctions > 0 else np.nan
 
             survival_probability = 1 - extinctions / run_count
-            survival_probability_sem = np.sqrt((survival_probability * (1 - survival_probability)) / run_count) if run_count > 0 else np.nan
+            survival_probability_sem = np.sqrt((survival_probability * (1 - survival_probability)) / run_count) if run_count > 0 else np.nan # standard error for a proportion
 
             results_df.loc[len(results_df), [
                 "runName", "K", "B", "QSD", "QREV", "RMAX", "N", 

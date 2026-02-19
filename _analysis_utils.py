@@ -215,45 +215,90 @@ def load_existing_fits(data_fits_path, overwrite):
     return data_fits, existing_runs
 
 
+# def extract_run_parameters(dat):
+
+#     runName = dat.runName.unique()
+#     if len(runName) != 1:
+#         raise ValueError("Expected exactly one unique runName in the data.") 
+#     runName = runName[0]
+
+#     model = runName.split("_")[0]
+#     qsd = dat.QSD.unique().item()
+#     N = dat.N.unique().item()
+#     rmax = dat.RMAX.unique().item()
+#     B = dat.B.unique().item()
+#     max_P = dat.P.max()
+    
+#     # Optional parameters
+#     try:
+#         qrev = dat.QREV.unique().item()
+#         if "LogGrowthD" not in model:
+#             qrev = np.nan
+#     except AttributeError:
+#         qrev = np.nan
+    
+#     try:
+#         sa = dat.SA.unique().item()
+#     except AttributeError:
+#         sa = None
+    
+#     try:
+#         yt = dat.YEAR_THRESHOLD.unique().item()
+#     except AttributeError:        
+#         yt = None
+
+
+#     return {
+#         'runName': runName,
+#         'model': model,
+#         'qsd': qsd,
+#         'year_threshold': yt,
+#         'N': N,
+#         'rmax': rmax,
+#         'B': B,
+#         'max_P': max_P,
+#         'qrev': qrev,
+#         'sa': sa
+#     }
+
 def extract_run_parameters(dat):
-
-    runName = dat.runName.unique()
-    if len(runName) != 1:
-        raise ValueError("Expected exactly one unique runName in the data.") 
-    runName = runName[0]
-
-    model = runName.split("_")[0]
-    qsd = dat.QSD.unique().item()
-    N = dat.N.unique().item()
-    rmax = dat.RMAX.unique().item()
-    B = dat.B.unique().item()
-    x = dat.K 
-    y = dat.P
-    max_y = y.max()
-    
-    # Optional parameters
-    try:
-        qrev = dat.QREV.unique().item()
-        if "LogGrowthD" not in model:
-            qrev = np.nan
-    except AttributeError:
-        qrev = np.nan
-    
-    try:
-        sa = dat.SA.unique().item()
-    except AttributeError:
-        sa = None
-    
-    return {
-        'runName': runName,
-        'model': model,
-        'qsd': qsd,
-        'N': N,
-        'rmax': rmax,
-        'B': B,
-        'x': x,
-        'y': y,
-        'max_y': max_y,
-        'qrev': qrev,
-        'sa': sa
+    # Define the parameters to extract with their extraction method and optional post-processing
+    parameters_to_extract = {
+        'runName': {'method': 'unique', 'validate': True},
+        'QSD': {'method': 'unique'},
+        'N': {'method': 'unique'},
+        'RMAX': {'method': 'unique'},
+        'B': {'method': 'unique'},
+        'P': {'method': 'max'},
+        'QREV': {'method': 'unique', 'check_model': True},
+        'SA': {'method': 'unique'},
+        'YEAR_THRESHOLD': {'method': 'unique'}
     }
+    
+    result = {}
+    
+    for param, config in parameters_to_extract.items():
+        try:
+            method = config['method']
+            
+            if method == 'unique':
+                value = dat[param].unique()
+                if config.get('validate'):  # runName validation
+                    if len(value) != 1:
+                        raise ValueError("Expected exactly one unique runName in the data.")
+                    result['runName'] = value[0]
+                    result['model'] = value[0].split("_")[0]
+                else:
+                    value = value.item()
+                    result[param.lower()] = value
+                    
+                    # Handle qrev special case
+                    if config.get('check_model') and 'model' in result and "LogGrowthD" not in result['model']:
+                        result[param.lower()] = np.nan
+                        
+            elif method == 'max':
+                result['max_' + param.lower()] = dat[param].max()
+        except (AttributeError, KeyError):
+            continue
+    
+    return result

@@ -1,0 +1,15 @@
+Species,Binomial,s1,s2,s3,s4,s5,s6,s7,si,s_i>=,a2,a3,a4,a5,a6,a7,ai,a_i>=,f1,f2,f3,f4,fi,f_i>=,References
+Northern Fulmar,Fulmarus glacialis,0.95,,,,,,,0.972,2,,,,,,,,,,,,,0.491,12,Dunnet & Ollason 1978; Ollason & Dunnet 1988
+Atlantic Puffin,Fratercula artica,0.638,,,,,,,0.95,2,,,,,,,0.9,5,,,,,0.84,5,Harris & Wanless 1991
+Griffon Vulture,Gyps fulvus,0.858,0.858,0.987,,,,,0.975,4,,,0.43,,,,,4,,,,,1,4,Ferrière et al. 1996
+Black-legged Kittiwake,Rissa tridactyla,0.79,,,,,,,0.9,2,,,,0.9,,,1,6,,,,,1.36,5,Thomas & Coulson 1988
+Herring Gull,Larus argentatus,0.83,,,,,,,0.935,2,,,,,,,,,,,,,1,5,Chabrzyk & Coulson 1976
+Snow Goose,Anser caerulescens,0.5,,,,,,,0.83,2,0.35,0.77,,,,,0.85,4,,,,,2.75,2,Gauthier & Brault 1998
+Barnacle Goose,Branta leucopsis,0.83,,,,,,,0.95,2,,0.336,,,,,0.672,4,,,,,1.425,3,Larsson et al. 1988
+Great Cormorant,Phalocracorax carbo,0.601,0.873,0.882,0.889,0.893,0.896,0.897,0.896,8,0.403,0.62,0.797,0.905,0.958,0.983,0.992,8,,1.3,1.5,1.8,2,5,Frederiksen et al. 2001
+Black-headed Gull,Larus ridibundus,0.5,0.8,,,,,,0.9,3,0.3,,,,,0.7,3,,,,,2.2,2,Lebreton & Landry 1979; Lebreton 1981; Clobert et al. 1987; Lebreton et al. 1990; Prévot-Julliard et al. 1998,
+White Stork,Ciconia ciconia,0.74,,,,,,,0.78,2,0.2,0.4,,,,,1,4,,2.5,,,3.2,3,Lebreton 1978; Barbraud et al. 1999
+Caspian Tern,Sterna caspia,0.82,0.79,0.87,,,,,0.89,4,,,,,,,,,,,,,1.61,2,Gill & Mewaldt 1983
+Great Tit,Parus major,0.365,,,,,,,0.73,2,,,,,,,,,,,,,5,1,McCleery & Perrins 1989
+Rock Sparrow,Petronia petronia,0.46,,,,,,,0.77,2,,,,,,,,,,,,,6,1,Tavecchia 2000
+Black-footed Albatross,Phoebastria nigripes,,,,,,,,0.947,8,,,,,,,,,,,,,,,
