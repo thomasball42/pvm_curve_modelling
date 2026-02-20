@@ -34,8 +34,8 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
     modelN = run_params["modelN"]
     modelQ = run_params["modelQ"]
     num_runs = run_params["num_runs"]
-    kwargs = run_params["kwargs"]
-    
+    kwargs = {**run_params["kwargs"], **kwargs}
+
     if B is None:
         if modelR == _models.Ri_model_C and Sa is not None and Rmax is not None:
             B = _models.getB(Rmax, Sa)
@@ -45,14 +45,16 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
     filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0, year_threshold, **kwargs)
     filepath = os.path.join(RESULTS_PATH, filename + ".csv")
 
+    
     if os.path.isfile(filepath) and not OVERWRITE_EXISTING_FILES:
-        return
+        return None
 
     q_params = (0, qsd, qrev)
     kwargs["q_params"] = q_params
 
     results_df = pd.DataFrame()
     for idx, K in enumerate(CARRYING_CAPACITIES):
+
         N0_run = K if N0 is None else N0  # Modify as needed for non-K initialisations
 
         if not MULTIPROCESSING_ENABLED:
@@ -62,6 +64,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
         run_count = 0
         year_extinct = []
         for _ in range(num_runs):
+
             population = _population.Population(K, B, Rmax, Sa, N0_run)
             year = 0
             while year < year_threshold:

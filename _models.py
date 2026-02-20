@@ -10,16 +10,13 @@ import numpy as np
 import _population
 
 def poisson_dist(lam): 
-    if lam < 0:
+    if lam < 0 or np.isnan(lam):
         ret = -1 # causes extinction
     else:
         try:
             ret = np.random.poisson(lam)
         except ValueError:
-            if np.isnan(lam) or np.isinf(lam):
-                ret = -1  # Treat NaN or infinite lambda as extinction
-            else:
-                ret = round(lam) 
+            ret = round(lam) 
     return ret
 
 def Q_normal_dist(loc, S, RF, Q_hist):

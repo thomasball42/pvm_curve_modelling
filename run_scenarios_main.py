@@ -18,9 +18,9 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 10
+NUM_WORKERS = 20
 MULTIPROCESSING_ENABLED = True
-OVERWRITE_EXISTING_FILES = True
+OVERWRITE_EXISTING_FILES = False
 
 # Paths
 RESULTS_PATH = Path("..", "results", "simulation_results", "results_main")
@@ -138,4 +138,8 @@ def main(RUNS,
                             *task_params)
                                 
 if __name__ == '__main__':
-    main(RUNS, RESULTS_PATH, MULTIPROCESSING_ENABLED, OVERWRITE_EXISTING_FILES, CARRYING_CAPACITIES)
+    main(RUNS, RESULTS_PATH, 
+         MULTIPROCESSING_ENABLED=MULTIPROCESSING_ENABLED, 
+         NUM_WORKERS=NUM_WORKERS, 
+         OVERWRITE_EXISTING_FILES=OVERWRITE_EXISTING_FILES, 
+         CARRYING_CAPACITIES=CARRYING_CAPACITIES)

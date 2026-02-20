@@ -10,10 +10,10 @@ import run_scenarios_main
 
 RESULTS_PATH = Path("..", "results", "simulation_results", "results_N_L_2005")
 
-QSD_SPACE = np.arange(0.01, 0.2, 0.01)
+QSD_SPACE = np.arange(0.01, 0.15, 0.01)
 
-bird_demogr_data_file = Path("manuscript_inputs\\niel_lebreton2005_bird_demographics.csv")
-bird_growth_rate_data_file = Path("manuscript_inputs\\niel_lebreton2005_bird_growth_rates.csv")
+bird_demogr_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_demographics.csv")
+bird_growth_rate_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_growth_rates.csv")
 
 bird_demogr_df = pd.read_csv(bird_demogr_data_file, index_col=0)
 
@@ -38,7 +38,7 @@ for index, row in bird_demogr_df.iterrows():
         "modelR": run_scenarios_main.RUNS["LogGrowthC"]["modelR"],
         "modelN": run_scenarios_main.RUNS["LogGrowthC"]["modelN"],
         "modelQ": run_scenarios_main.RUNS["LogGrowthC"]["modelQ"],
-        "num_runs": 1,
+        "num_runs": 10000,
         "kwargs": {"RMAX_SPACE": rmax_space, 
                    "SA_SPACE": [bird_Sa], 
                    "B_SPACE": [bird_B],
