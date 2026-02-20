@@ -97,6 +97,7 @@ def generate_tasks(RUNS):
 def main(RUNS, 
          RESULTS_PATH, 
          MULTIPROCESSING_ENABLED=True, 
+         NUM_WORKERS=10,
          OVERWRITE_EXISTING_FILES=True, 
          CARRYING_CAPACITIES= np.unique(np.round(np.geomspace(1, 3000000, num=200)))):
     
@@ -113,7 +114,6 @@ def main(RUNS,
 
     if MULTIPROCESSING_ENABLED:
 
-        global NUM_WORKERS
         if NUM_WORKERS > len(tasks):
             print(f"Warning: NUM_WORKERS ({NUM_WORKERS}) is greater than the number of tasks ({len(tasks)}). Reducing to {len(tasks)}.")
             NUM_WORKERS = len(tasks)

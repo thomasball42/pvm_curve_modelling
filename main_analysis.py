@@ -23,8 +23,8 @@ PLOT_CURVES = False
 OVERWRITE = True
 
 # Paths
-RESULTS_PATH = "..\\results\\simulation_results\\results_tte"
-DATA_FITS_PATH = "..\\results\\data_fits\\data_fits_tte"
+RESULTS_PATH = "..\\results\\simulation_results\\results_main"
+DATA_FITS_PATH = "..\\results\\data_fits\\data_fits_main"
 MODELS = ["A", "B", "C", "D"]
 
 
@@ -41,8 +41,8 @@ def process_simulation_file(file, data_fits_path, existing_runs,
         return None
     
     # Extract data
-    x = run_params['x']
-    y = run_params['y']
+    x = dat.K
+    y = dat.P
     
     # Scale if requested
     if scale_1_0:
