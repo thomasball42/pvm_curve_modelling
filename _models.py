@@ -16,7 +16,10 @@ def poisson_dist(lam):
         try:
             ret = np.random.poisson(lam)
         except ValueError:
-            ret = round(lam) 
+            if np.isnan(lam) or np.isinf(lam):
+                ret = -1  # Treat NaN or infinite lambda as extinction
+            else:
+                ret = round(lam) 
     return ret
 
 def Q_normal_dist(loc, S, RF, Q_hist):
