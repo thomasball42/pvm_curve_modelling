@@ -53,8 +53,8 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
 
     results_df = pd.DataFrame()
     for idx, K in enumerate(CARRYING_CAPACITIES):
-        N0 = K if N0 is None else N0  # Modify as needed for non-K initialisations
-        
+        N0_run = K if N0 is None else N0  # Modify as needed for non-K initialisations
+
         if not MULTIPROCESSING_ENABLED:
             print(f"{filename}, {idx + 1} / {len(CARRYING_CAPACITIES)}")
 
@@ -62,7 +62,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
         run_count = 0
         year_extinct = []
         for _ in range(num_runs):
-            population = _population.Population(K, B, Rmax, Sa, N0)
+            population = _population.Population(K, B, Rmax, Sa, N0_run)
             year = 0
             while year < year_threshold:
                 population.iterate(modelR, modelN, modelQ, **kwargs)
@@ -89,7 +89,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
                 "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"
             ]] = [
                 filename, K, B, qsd, qrev, Rmax, num_runs, 
-                survival_probability, survival_probability_sem, Sa, N0, year_threshold, mean_tte, mean_tte_sem
+                survival_probability, survival_probability_sem, Sa, N0_run, year_threshold, mean_tte, mean_tte_sem
             ]
 
     results_df.to_csv(filepath, index=False)
