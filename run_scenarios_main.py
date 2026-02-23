@@ -18,7 +18,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Configuration
-NUM_WORKERS = 20
+NUM_WORKERS = 32
 MULTIPROCESSING_ENABLED = True
 OVERWRITE_EXISTING_FILES = False
 
@@ -27,7 +27,7 @@ RESULTS_PATH = Path("..", "results", "simulation_results", "results_main")
 
 # Simulation Parameters
 NUM_RUNS = 10000
-CARRYING_CAPACITIES = np.unique(np.round(np.geomspace(1, 3000000, num=200)))
+CARRYING_CAPACITIES = np.unique(np.round(np.geomspace(1, 3E6, num=200)))
 
 # Parameter Spaces
 QSD_SPACE = np.arange(0.05, 0.55, 0.03)
@@ -35,6 +35,11 @@ RMAX_SPACE = np.array([round(z, 3) for z in np.linspace(0.055, 0.774, 15)])
 SA_SPACE = np.arange(0.35, 0.95 + 0.15, 0.15)
 QREV_SPACE = np.linspace(1, 100, 5) / 100
 YEARS_SPACE = [100]
+
+# QSD_SPACE = [0.11]
+# RMAX_SPACE = [0.209]
+# SA_SPACE = [0.35]
+# QREV_SPACE = [0.505]
 
 N0_SPACE = [None] # MODIFY THE CODE TO CHANGE N0 TO ANYTHING OTHER THAN K
 
