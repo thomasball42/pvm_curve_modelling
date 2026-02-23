@@ -137,3 +137,21 @@ def getB(Rmax, Sa): # small birds
     else: 
         B = round(B)
     return B
+
+def get_new_K(current_K,
+              varK_schedule=None,
+              varK_strength=None,
+              varK_schedule_fn=None):
+    
+    if varK_schedule is not None:
+        if varK_schedule == "increase":
+            new_K = current_K * (1 + varK_strength)
+        elif varK_schedule == "decrease":
+            new_K = current_K * max(0, 1 - varK_strength)
+        elif varK_schedule == "random_walk":
+            new_K = max(0, current_K + np.random.normal(0, varK_strength * current_K))
+        elif varK_schedule == "custom":
+            new_K = varK_schedule_fn(current_K, varK_strength)
+        else:
+            raise ValueError(f"Unknown varK_schedule: {varK_schedule}")
+    return new_K
