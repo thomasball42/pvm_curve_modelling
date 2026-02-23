@@ -7,7 +7,8 @@ import numpy as np
 import _models
 import _population
 
-def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=None, year_threshold=100, **kwargs):
+def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=None, year_threshold=100,
+                      varK_schedule=None, varK_strength=None, **kwargs):
     parts = [
         f"{run_name}",
         f"QSD{round(qsd, 3)}",
@@ -15,7 +16,9 @@ def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=None, yea
         f"RMAX{round(Rmax, 3)}" if Rmax is not None else None,
         f"SA{round(Sa, 3)}" if Sa is not None else None,
         f"QREV{round(qrev, 3)}" if qrev is not None else None,
-        f"N0{round(N0, 3)}" if N0 is not None else None,    
+        f"N0{round(N0, 3)}" if N0 is not None else None,
+        f"KSCHED_{varK_schedule}" if varK_schedule is not None else None,
+        f"KSTR{varK_strength}" if varK_strength is not None else None,
     ]
 
     if "allee_params_theta_upsil" in kwargs.keys():
@@ -23,13 +26,25 @@ def generate_filename(run_name, qsd, qrev=None, Sa=None, Rmax=None, N0=None, yea
         if isinstance(ALLEE_param, tuple) and len(ALLEE_param) == 2:
             theta, upsil = ALLEE_param
             parts.append(f"ALLEEtheta{round(theta, 3)}_ALLEEupsil{round(upsil, 3)}")
-    return "_".join(filter(None, parts))  # Remove None values
+    return "_".join(filter(None, parts))
+
 
 def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
              CARRYING_CAPACITIES,
-             run_name, run_params, qsd, qrev, Rmax=None, Sa=None, N0=None, B=None, year_threshold=100, 
+             run_name, run_params, qsd, qrev, Rmax=None, Sa=None, N0=None, B=None, year_threshold=100,
+             varK_schedule=None, varK_strength=None, varK_schedule_fn=None,
              **kwargs):
-    
+    """
+    Simulates population dynamics, optionally with a time-varying carrying capacity K.
+
+    To enable a varying K schedule, pass the following keys in kwargs:
+        varK_schedule : str
+            One of "linear_increase", "linear_decrease", "random_walk", or "custom".
+        varK_strength : float
+            Magnitude of K change per year_threshold units.
+        varK_schedule_fn : callable, optional
+            Used when varK_schedule == "custom". Signature: fn(t, K0, strength) -> float.
+    """
     modelR = run_params["modelR"]
     modelN = run_params["modelN"]
     modelQ = run_params["modelQ"]
@@ -40,12 +55,14 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
         if modelR == _models.Ri_model_C and Sa is not None and Rmax is not None:
             B = _models.getB(Rmax, Sa)
             if B is None:
-                return  # Skip this simulation if B is invalid
+                return
 
-    filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0, year_threshold, **kwargs)
+    filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0, year_threshold,
+                                 varK_schedule=varK_schedule, varK_strength=varK_strength,
+                                 **kwargs)
+    
     filepath = os.path.join(RESULTS_PATH, filename + ".csv")
 
-    
     if os.path.isfile(filepath) and not OVERWRITE_EXISTING_FILES:
         return None
 
@@ -57,7 +74,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
 
     for idx, K in enumerate(CARRYING_CAPACITIES):
 
-        N0_run = K if N0 is None else N0  # Modify as needed for non-K initialisations
+        N0_run = K0 if N0 is None else N0
 
         if not MULTIPROCESSING_ENABLED:
             print(f"{filename}, {idx + 1} / {len(CARRYING_CAPACITIES)}")
@@ -67,11 +84,13 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
         year_extinct = []
         for _ in range(num_runs):
 
-            population = _population.Population(K, B, Rmax, Sa, N0_run)
+            population = _population.Population(K0, B, Rmax, Sa, N0_run)
+            current_K = K0
             year = 0
             while year < year_threshold:
                 
                 population.iterate(modelR, modelN, modelQ, **kwargs)
+
                 if not population.EXTANT:
                     year_extinct.append(year)
                     extinctions += 1
@@ -89,15 +108,9 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             mean_tte_sem = np.std(year_extinct) / np.sqrt(extinctions) if extinctions > 0 else np.nan
 
             survival_probability = 1 - extinctions / run_count
-            survival_probability_sem = np.sqrt((survival_probability * (1 - survival_probability)) / run_count) if run_count > 0 else np.nan # standard error for a proportion
-
-            # results_df.loc[len(results_df), [
-            #     "runName", "K", "B", "QSD", "QREV", "RMAX", "N", 
-            #     "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"
-            # ]] = [
-            #     filename, K, B, qsd, qrev, Rmax, num_runs, 
-            #     survival_probability, survival_probability_sem, Sa, N0_run, year_threshold, mean_tte, mean_tte_sem
-            # ]
+            survival_probability_sem = np.sqrt(
+                (survival_probability * (1 - survival_probability)) / run_count
+            ) if run_count > 0 else np.nan
             
             rows.append({
                 "runName": filename,
