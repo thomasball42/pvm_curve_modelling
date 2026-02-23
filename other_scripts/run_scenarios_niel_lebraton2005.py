@@ -51,6 +51,6 @@ if __name__ == '__main__':
     run_scenarios_main.main(RUNS, 
                             RESULTS_PATH, 
                             MULTIPROCESSING_ENABLED=True, 
-                            NUM_WORKERS=10,
-                            OVERWRITE_EXISTING_FILES=True, 
+                            NUM_WORKERS=16,
+                            OVERWRITE_EXISTING_FILES=False, 
                             CARRYING_CAPACITIES=run_scenarios_main.CARRYING_CAPACITIES)

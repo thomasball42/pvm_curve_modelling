@@ -52,7 +52,9 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
     q_params = (0, qsd, qrev)
     kwargs["q_params"] = q_params
 
-    results_df = pd.DataFrame()
+    # results_df = pd.DataFrame()
+    rows = []
+
     for idx, K in enumerate(CARRYING_CAPACITIES):
 
         N0_run = K if N0 is None else N0  # Modify as needed for non-K initialisations
@@ -68,6 +70,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             population = _population.Population(K, B, Rmax, Sa, N0_run)
             year = 0
             while year < year_threshold:
+                
                 population.iterate(modelR, modelN, modelQ, **kwargs)
                 if not population.EXTANT:
                     year_extinct.append(year)
@@ -81,18 +84,40 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
                 run_count += 1
 
         if run_count > 0:
+
             mean_tte = np.mean(year_extinct) if extinctions > 0 else np.nan
             mean_tte_sem = np.std(year_extinct) / np.sqrt(extinctions) if extinctions > 0 else np.nan
 
             survival_probability = 1 - extinctions / run_count
             survival_probability_sem = np.sqrt((survival_probability * (1 - survival_probability)) / run_count) if run_count > 0 else np.nan # standard error for a proportion
 
-            results_df.loc[len(results_df), [
-                "runName", "K", "B", "QSD", "QREV", "RMAX", "N", 
-                "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"
-            ]] = [
-                filename, K, B, qsd, qrev, Rmax, num_runs, 
-                survival_probability, survival_probability_sem, Sa, N0_run, year_threshold, mean_tte, mean_tte_sem
-            ]
+            # results_df.loc[len(results_df), [
+            #     "runName", "K", "B", "QSD", "QREV", "RMAX", "N", 
+            #     "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"
+            # ]] = [
+            #     filename, K, B, qsd, qrev, Rmax, num_runs, 
+            #     survival_probability, survival_probability_sem, Sa, N0_run, year_threshold, mean_tte, mean_tte_sem
+            # ]
+            
+            rows.append({
+                "runName": filename,
+                "K": K,
+                "B": B,
+                "QSD": qsd,
+                "QREV": qrev,
+                "RMAX": Rmax,
+                "N": num_runs,
+                "P": survival_probability,
+                "P_SEM": survival_probability_sem,
+                "SA": Sa,
+                "N0": N0_run,
+                "YEAR_THRESHOLD": year_threshold,
+                "mean_TTE": mean_tte,
+                "mean_TTE_SEM": mean_tte_sem,
+            })
 
+    results_df = pd.DataFrame.from_records(rows, columns=[
+        "runName", "K", "B", "QSD", "QREV", "RMAX", "N",
+        "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"
+    ])        
     results_df.to_csv(filepath, index=False)
