@@ -85,7 +85,6 @@ def Ri_model_alleeA(Rmax, species, **kwargs):
     Rf = pc_growth(Rmax, species.Nf, species.Kf, theta, upsil)
     return Rf, Rm
 
-
 def Ri_model_B(Rmax, species, **kwargs):
     Rm = Rmax * (1 - ((species.Nm+species.Nf)/(species.Km+species.Kf)))
     Rf = Rmax * (1 - ((species.Nm+species.Nf)/(species.Km+species.Kf)))
@@ -101,10 +100,10 @@ def Ri_model_C(Rmax, species, **kwargs):
         raise Exception("Parameters 'SA' and 'B' undefined in ModelC run.")
     else:
         Sa, B = species.Sa,species.B
-    tsp = copy.deepcopy(species)
+    tsp = copy.copy(species)
     if len(species.Nm_hist) > B:
-        fecundity_factor = np.array([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
-                                    species.Nf_hist[-B+1]/species.Nm_hist[-B+1]]).min()
+        fecundity_factor = min([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
+                                    species.Nf_hist[-B+1]/species.Nm_hist[-B+1]])
         tsp.Nm = species.Nm_hist[-B+1]
         tsp.Nf = species.Nf_hist[-B+1]
         t1m = species.Nm_hist[-B+1]/species.Nm
@@ -120,7 +119,7 @@ def Ri_model_C(Rmax, species, **kwargs):
             tsp.Nm = species.Nm_hist[-1]
             tsp.Nf = species.Nf_hist[-1]
         fecundity_factor = 1
-    tsp = copy.deepcopy(species)
+
     Rm, Rf = Rgen_model(species.Rmax, tsp)
     t2m = Rm + 1 - Sa
     Rm_prime = Sa - 1 + (t1m * t2m * fecundity_factor)
