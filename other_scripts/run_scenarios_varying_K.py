@@ -22,14 +22,14 @@ OVERWRITE_EXISTING_FILES = False
 # Paths
 RESULTS_PATH = Path("..", "results", "simulation_results", "results_varying_K")
 
-NUM_RUNS = 1000
-CARRYING_CAPACITIES = np.unique(np.round(np.geomspace(1, 3000000, num=200)))
+NUM_RUNS = 2
+CARRYING_CAPACITIES = np.unique(np.round(np.geomspace(1, 300000, num=100)))
 
 QSD_SPACE = [0.05]
 RMAX_SPACE = [0.3]
 YEARS_SPACE = [100]
 
-K_SCHEDULE_SPACE = ["increase", "decrease", "random_walk"]
+K_SCHEDULE_SPACE = [None, "increase", "decrease", "random_walk"]
 K_STRENGTH_SPACE = [0.05]
 
 # Run Configuration
@@ -47,11 +47,10 @@ RUNS = {
     }
 }
 
-
 if __name__ == '__main__':
     run_scenarios_main.main(RUNS, 
                             RESULTS_PATH, 
                             MULTIPROCESSING_ENABLED=True, 
                             NUM_WORKERS=NUM_WORKERS,
                             OVERWRITE_EXISTING_FILES=False, 
-                            CARRYING_CAPACITIES=run_scenarios_main.CARRYING_CAPACITIES)
+                            CARRYING_CAPACITIES=CARRYING_CAPACITIES)

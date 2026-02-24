@@ -69,10 +69,9 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
     q_params = (0, qsd, qrev)
     kwargs["q_params"] = q_params
 
-    # results_df = pd.DataFrame()
     rows = []
 
-    for idx, K in enumerate(CARRYING_CAPACITIES):
+    for idx, K0 in enumerate(CARRYING_CAPACITIES):
 
         N0_run = K0 if N0 is None else N0
 
@@ -88,7 +87,14 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             current_K = K0
             year = 0
             while year < year_threshold:
-                
+
+                if varK_schedule is not None:
+                    current_K = _models.get_new_K(current_K, varK_schedule, varK_strength, varK_schedule_fn)
+
+                    population.K = current_K
+                    population.Km = current_K / 2
+                    population.Kf = current_K / 2
+
                 population.iterate(modelR, modelN, modelQ, **kwargs)
 
                 if not population.EXTANT:
@@ -103,7 +109,6 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
                 run_count += 1
 
         if run_count > 0:
-
             mean_tte = np.mean(year_extinct) if extinctions > 0 else np.nan
             mean_tte_sem = np.std(year_extinct) / np.sqrt(extinctions) if extinctions > 0 else np.nan
 
@@ -111,10 +116,20 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             survival_probability_sem = np.sqrt(
                 (survival_probability * (1 - survival_probability)) / run_count
             ) if run_count > 0 else np.nan
-            
-            rows.append({
+
+            # row = {
+            #     "runName": filename, "K": K0, "B": B, "QSD": qsd, "QREV": qrev,
+            #     "RMAX": Rmax, "N": num_runs, "P": survival_probability, "P_SEM": survival_probability_sem,
+            #     "SA": Sa, "N0": N0_run, "YEAR_THRESHOLD": year_threshold,
+            #     "mean_TTE": mean_tte, "mean_TTE_SEM": mean_tte_sem,
+            # }
+            # if varK_schedule is not None:
+            #     row["K_SCHEDULE"] = varK_schedule
+            #     row["STRENGTH"] = varK_strength
+
+            dat = {
                 "runName": filename,
-                "K": K,
+                "K": K0,
                 "B": B,
                 "QSD": qsd,
                 "QREV": qrev,
@@ -127,10 +142,20 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
                 "YEAR_THRESHOLD": year_threshold,
                 "mean_TTE": mean_tte,
                 "mean_TTE_SEM": mean_tte_sem,
-            })
+            }
 
-    results_df = pd.DataFrame.from_records(rows, columns=[
-        "runName", "K", "B", "QSD", "QREV", "RMAX", "N",
-        "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"
-    ])        
+            if varK_schedule is not None:
+                dat["K_SCHEDULE"] = varK_schedule
+                dat["STRENGTH"] = varK_strength
+
+            rows.append(dat)
+
+
+            # results_df.loc[len(results_df), list(row.keys())] = list(row.values())
+
+    cols = list(rows[0].keys()) if len(rows) > 0 else ["runName", "K", "B", "QSD", "QREV", "RMAX", "N",
+                                                  "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"]
+    
+    results_df = pd.DataFrame.from_records(rows, columns=cols)        
+
     results_df.to_csv(filepath, index=False)
