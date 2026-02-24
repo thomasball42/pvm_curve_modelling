@@ -35,9 +35,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
              varK_schedule=None, varK_strength=None, varK_schedule_fn=None,
              **kwargs):
     """
-    Simulates population dynamics, optionally with a time-varying carrying capacity K.
-
-    To enable a varying K schedule, pass the following keys in kwargs:
+    To enable a varying K schedule, pass in kwargs:
         varK_schedule : str
             One of "linear_increase", "linear_decrease", "random_walk", or "custom".
         varK_strength : float
@@ -117,16 +115,6 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
                 (survival_probability * (1 - survival_probability)) / run_count
             ) if run_count > 0 else np.nan
 
-            # row = {
-            #     "runName": filename, "K": K0, "B": B, "QSD": qsd, "QREV": qrev,
-            #     "RMAX": Rmax, "N": num_runs, "P": survival_probability, "P_SEM": survival_probability_sem,
-            #     "SA": Sa, "N0": N0_run, "YEAR_THRESHOLD": year_threshold,
-            #     "mean_TTE": mean_tte, "mean_TTE_SEM": mean_tte_sem,
-            # }
-            # if varK_schedule is not None:
-            #     row["K_SCHEDULE"] = varK_schedule
-            #     row["STRENGTH"] = varK_strength
-
             dat = {
                 "runName": filename,
                 "K": K0,
@@ -149,9 +137,6 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
                 dat["STRENGTH"] = varK_strength
 
             rows.append(dat)
-
-
-            # results_df.loc[len(results_df), list(row.keys())] = list(row.values())
 
     cols = list(rows[0].keys()) if len(rows) > 0 else ["runName", "K", "B", "QSD", "QREV", "RMAX", "N",
                                                   "P", "P_SEM", "SA", "N0", "YEAR_THRESHOLD", "mean_TTE", "mean_TTE_SEM"]
