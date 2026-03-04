@@ -77,6 +77,7 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
                 ret = None
             else:
                 ret = fit(curve_func, dat_x, dat_y, init_guess = [a, b, alpha])
+
             if "plot_lins" in kwargs.keys() and kwargs["plot_lins"]:
                 if alpha < 0:
                     c = "g"

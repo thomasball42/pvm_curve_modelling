@@ -12,11 +12,12 @@ import os
 import pandas as pd
 import numpy as np
 import sys 
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
-sys.path.append("..")
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
 
 scale_1_0 = False

@@ -11,6 +11,11 @@ import matplotlib.ticker
 
 import _curve_fit
 
+import warnings
+from scipy.stats import ConstantInputWarning
+
+warnings.filterwarnings("ignore", category=ConstantInputWarning)
+
 
 def find_simulation_files(results_path, model):
 
@@ -36,7 +41,7 @@ def scale_to_unit_interval(x, y):
     return x, y
 
 
-def fit_gompertz_curve(x, y):
+def fit_gompertz_curve(x, y, alpha_space=np.arange(0, 5, 0.001), ylim=(0.0001, 0.9999), **kwargs):
     """
     Fit a modified Gompertz curve to the data.
     
@@ -62,23 +67,31 @@ def fit_gompertz_curve(x, y):
     func = _curve_fit.mod_gompertz
     param_names = ("param_a", "param_b", "param_alpha")
     
+    iteration_depth = kwargs.pop("iteration_depth", 2)
+
     # Try first parameter space
     ret = _curve_fit.betterfit_gompertz(
         func, x, y, 
-        alpha_space=np.arange(0, 5, 0.001), 
-        ylim=(0.0001, 0.9999), 
-        plot_lins=False
-    )
-    
-    # Try alternative parameter space if first fails
-    if ret is None:
+        alpha_space=alpha_space, 
+        ylim=ylim, 
+        plot_lins=False,
+        **kwargs
+    )   
+
+    for depth in range(iteration_depth):
+        if ret is not None:
+            break
+
+        alpha_space = np.linspace(0, 0.1 / (10 ** depth), 100)
+
         ret = _curve_fit.betterfit_gompertz(
-            func, x, y, 
-            alpha_space=np.arange(-5, 0, 0.001),
-            ylim=(0.05, 0.95), 
-            plot_lins=False
+            func, x, y,
+            alpha_space=alpha_space,
+            ylim=(0.01, 0.99),
+            plot_lins=False,
+            **kwargs
         )
-    
+        
     if ret is None:
         return {
             'params': tuple([np.nan for _ in param_names]),
@@ -150,26 +163,52 @@ def calculate_extinction_metrics(xff, yff, params):
     
     return result
 
-
-def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False):
-    # Determine color and marker based on fit quality
+def format_R2_str(R2):
     if np.isnan(R2):
-        c = "r"
-        marker = "x"
-    elif params[-1] < 0:
-        c = "m"
-        marker = "o"
+        return "NaN"
     else:
-        c = plt.cm.get_cmap('viridis')((R2 - 0.990) / (1 - 0.990))
-        marker = "o"
+        nnnn = 0
+        while round(R2, nnnn) == 1:
+            nnnn += 1
+        return str(round(R2,nnnn+1))
     
-    # Determine number of decimal places for R2
-    nnnn = 0
-    while round(R2, nnnn) == 1:
-        nnnn += 1
+
+def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False,
+                   **kwargs):
     
-    label = f"{runName}_(R2:{round(R2, nnnn + 1)})"
+    color = kwargs.pop("color", None) 
+    marker = kwargs.pop("marker", None)
+    colormap = kwargs.pop("colormap", "viridis")
     
+    if color is None:
+        if np.isnan(R2):
+            c = "r"
+            marker = "x"
+        else:
+            c = plt.cm.get_cmap('viridis')((R2 - 0.990) / (1 - 0.990))
+            marker = "o"
+
+    if isinstance(color, str) and len(color) == 1:
+        c = color
+
+    if isinstance(color, float):
+        c = plt.cm.get_cmap(colormap)(color)
+
+
+    if marker is None: # default behaviour
+        if np.isnan(R2):
+            marker = "x"
+        else:
+            marker = "o"
+    
+    label = kwargs.pop("label", "default")
+    if label is "default":
+        # Determine number of decimal places for R2
+        
+        label = f"{runName}_(R2:{format_R2_str(R2)})"
+
+    
+
     # Plot scatter
     ax.scatter(x, 1 - y, color=c, alpha=0.7, marker=marker)
     
@@ -198,7 +237,7 @@ def plot_parameter_space(ax, qsd, rmax, R2, params):
         c = "m"
         marker = "o"
     else:
-        c = plt.cm.get_cmap('viridis')((R2 - 0.990) / (1 - 0.990))
+        c = plt.cm.get_cmap('viridis')((R2 - 0.90) / (1 - 0.90))
         marker = "o"
     
     ax.scatter(qsd, rmax, color=c, s=70, marker=marker)
@@ -215,6 +254,51 @@ def load_existing_fits(data_fits_path, overwrite):
     return data_fits, existing_runs
 
 
+
+def extract_run_parameters(dat):
+    # Define the parameters to extract with their extraction method and optional post-processing
+    parameters_to_extract = {
+        'runName': {'method': 'unique', 'validate': True},
+        'QSD': {'method': 'unique'},
+        'N': {'method': 'unique'},
+        'RMAX': {'method': 'unique'},
+        'B': {'method': 'unique'},
+        'P': {'method': 'max'},
+        'QREV': {'method': 'unique', 'check_model': True},
+        'SA': {'method': 'unique'},
+        'YEAR_THRESHOLD': {'method': 'unique'},
+    }
+    
+    result = {}
+    
+    for param, config in parameters_to_extract.items():
+        try:
+            method = config['method']
+            
+            if method == 'unique':
+                value = dat[param].unique()
+                if config.get('validate'):  # runName validation
+                    if len(value) != 1:
+                        raise ValueError("Expected exactly one unique runName in the data.")
+                    result['runName'] = value[0]
+                    result['model'] = value[0].split("_")[0]
+                else:
+                    value = value.item()
+                    result[param.lower()] = value
+                    
+                    # Handle qrev special case
+                    if config.get('check_model') and 'model' in result and "LogGrowthD" not in result['model']:
+                        result[param.lower()] = np.nan
+                        
+            elif method == 'max':
+                result['max_' + param.lower()] = dat[param].max()
+        except (AttributeError, KeyError):
+            continue
+    
+    return result
+
+
+    
 # def extract_run_parameters(dat):
 
 #     runName = dat.runName.unique()
@@ -260,45 +344,3 @@ def load_existing_fits(data_fits_path, overwrite):
 #         'qrev': qrev,
 #         'sa': sa
 #     }
-
-def extract_run_parameters(dat):
-    # Define the parameters to extract with their extraction method and optional post-processing
-    parameters_to_extract = {
-        'runName': {'method': 'unique', 'validate': True},
-        'QSD': {'method': 'unique'},
-        'N': {'method': 'unique'},
-        'RMAX': {'method': 'unique'},
-        'B': {'method': 'unique'},
-        'P': {'method': 'max'},
-        'QREV': {'method': 'unique', 'check_model': True},
-        'SA': {'method': 'unique'},
-        'YEAR_THRESHOLD': {'method': 'unique'}
-    }
-    
-    result = {}
-    
-    for param, config in parameters_to_extract.items():
-        try:
-            method = config['method']
-            
-            if method == 'unique':
-                value = dat[param].unique()
-                if config.get('validate'):  # runName validation
-                    if len(value) != 1:
-                        raise ValueError("Expected exactly one unique runName in the data.")
-                    result['runName'] = value[0]
-                    result['model'] = value[0].split("_")[0]
-                else:
-                    value = value.item()
-                    result[param.lower()] = value
-                    
-                    # Handle qrev special case
-                    if config.get('check_model') and 'model' in result and "LogGrowthD" not in result['model']:
-                        result[param.lower()] = np.nan
-                        
-            elif method == 'max':
-                result['max_' + param.lower()] = dat[param].max()
-        except (AttributeError, KeyError):
-            continue
-    
-    return result
