@@ -171,7 +171,8 @@ def format_R2_str(R2):
         while round(R2, nnnn) == 1:
             nnnn += 1
         return str(round(R2,nnnn+1))
-    
+
+
 
 def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False,
                    **kwargs):
@@ -207,7 +208,6 @@ def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False,
         
         label = f"{runName}_(R2:{format_R2_str(R2)})"
 
-    
 
     # Plot scatter
     ax.scatter(x, 1 - y, color=c, alpha=0.7, marker=marker)

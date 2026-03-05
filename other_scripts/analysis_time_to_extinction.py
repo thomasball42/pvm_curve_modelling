@@ -1,3 +1,4 @@
+import matplotlib
 import pandas as pd
 import numpy as np
 import os
@@ -5,6 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import sys
 import re
+from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
@@ -28,8 +30,8 @@ files = [file for file in list_of_files if ".csv" in file and "LogGrowth" in fil
 
 models = ["A", "B", "C", "D"]
 
-fig, axs = plt.subplots(2,2, figsize=FIGSIZE)
-fig2, axs2 = plt.subplots(2,2, figsize=FIGSIZE)
+fig, axs = plt.subplots(2,2, figsize=FIGSIZE, sharex=True, sharey=True)
+fig2, axs2 = plt.subplots(figsize=FIGSIZE, sharex=True, sharey=True)
 
 for m, run_model in enumerate(models):
 
@@ -42,7 +44,9 @@ for m, run_model in enumerate(models):
     model_files = sorted(model_files, key=extract_yt)
 
     ax = axs.flatten()[models.index(run_model)]
-    ax2 = axs2.flatten()[models.index(run_model)]
+
+    ax2 = axs2
+    # ax2 = axs2.flatten()[models.index(run_model)]
     
     data_fits_path = Path(DATA_FITS_PATH) / f"data_fits_model_{run_model}.csv"
 
@@ -112,16 +116,43 @@ for m, run_model in enumerate(models):
 
         existing_runs.add(ddf.loc[0, 'runName'])
 
-        ax.legend(fontsize = 7, ncol = 2)
+    ax.legend(fontsize = 7, ncol = 2)
+    ax.set_title(f"Model {run_model}")
 
+    yt_vals = data_fits.year_threshold.astype(float)
+    r2_vals = data_fits.R2.astype(float)
 
+    ## plot second ax
+    ax2_color =  matplotlib.colormaps["viridis"]((m/4)+0.2)
 
-    ## plot the second axes
-    ax2.scatter(data_fits.year_threshold, data_fits.R2, color='b', alpha = 0.7)
+    slope, intercept, r_value, p_value, std_err = stats.linregress(
+        yt_vals, r2_vals
+    )
+    x_line = np.linspace(yt_vals.min(), yt_vals.max(), 200)
+    y_line = slope * x_line + intercept
+    ax2.plot(x_line, y_line, color=ax2_color, linewidth=1.5, linestyle="--", alpha = 0.5)
+
+    ax2.scatter(yt_vals, r2_vals, 
+                color = matplotlib.colormaps["viridis"]((m/4)+0.2),
+                alpha = 0.9, 
+                label = f"Model {run_model} linear fit R$^2$: {r_value**2:.4f}")
+
+    ax2.ticklabel_format(axis='y', useOffset=False, style='plain')
     ax2.set_ylim(0.9999, 1.0)
     ax2.set_title(f"Model {run_model}")
+    ax2.set_xlabel("Year Threshold")
+    ax2.set_ylabel("R$^2$")
+
+    ax.set_xlabel("K")
+    ax.set_ylabel("P(E)")
+
+ax2.legend(fontsize=11)
 
 figs_dir.mkdir(parents=True, exist_ok=True)
+
+fig.tight_layout()
+fig2.tight_layout()
+
 fig.savefig(figs_dir / "tte_PE_vs_K_varYT.png", dpi=300)
 fig2.savefig(figs_dir / "R2_vs_YT.png", dpi=300)
 
