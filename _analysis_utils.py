@@ -68,6 +68,7 @@ def fit_gompertz_curve(x, y, alpha_space=np.arange(0, 5, 0.001), ylim=(0.0001, 0
     param_names = ("param_a", "param_b", "param_alpha")
     
     iteration_depth = kwargs.pop("iteration_depth", 2)
+    r2_tolerance = kwargs.pop("r2_tolerance", 0.001)
 
     # Try first parameter space
     ret = _curve_fit.betterfit_gompertz(
@@ -79,11 +80,9 @@ def fit_gompertz_curve(x, y, alpha_space=np.arange(0, 5, 0.001), ylim=(0.0001, 0
     )   
 
     for depth in range(iteration_depth):
-        if ret is not None:
+        if ret is not None and ret[2] >= r2_tolerance:
             break
-
         alpha_space = np.linspace(0, 0.1 / (10 ** depth), 100)
-
         ret = _curve_fit.betterfit_gompertz(
             func, x, y,
             alpha_space=alpha_space,
@@ -172,9 +171,17 @@ def format_R2_str(R2):
             nnnn += 1
         return str(round(R2,nnnn+1))
 
+def ax_log2_scale(ax):
+    ax.set_xscale("log", base=2)
+    ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10.0, numticks=10))
+    
+    def custom_formatter(x, pos):
+        return f'$10^{{{int(np.log10(x))}}}$'
+    
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
 
-
-def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False,
+def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False, alpha = 0.7,
                    **kwargs):
     
     color = kwargs.pop("color", None) 
@@ -203,14 +210,14 @@ def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False,
             marker = "o"
     
     label = kwargs.pop("label", "default")
-    if label is "default":
+    if label is None:
+        label = None
+    elif label is "default":
         # Determine number of decimal places for R2
-        
         label = f"{runName}_(R2:{format_R2_str(R2)})"
 
-
     # Plot scatter
-    ax.scatter(x, 1 - y, color=c, alpha=0.7, marker=marker)
+    ax.scatter(x, 1 - y, color=c, alpha=alpha, marker=marker)
     
     # Plot fitted curve
     xff = np.geomspace(x.min(), x.max(), num=100000)
@@ -219,15 +226,7 @@ def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False,
     
     # Format axes
     if not scale_1_0:
-        ax.set_xscale("log", base=2)
-        ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10.0, numticks=10))
-        
-        def custom_formatter(x, pos):
-            return f'$10^{{{int(np.log10(x))}}}$'
-        
-        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
-
+        ax = ax_log2_scale(ax)
 
 def plot_parameter_space(ax, qsd, rmax, R2, params):
     if np.isnan(R2):
