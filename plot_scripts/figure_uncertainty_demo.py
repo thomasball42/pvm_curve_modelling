@@ -20,89 +20,88 @@ for path, subdirs, files in os.walk(data_path):
 
 
 ## fig 1
-# example_files = ["LogGrowthA_QSD0.17_YT100_RMAX0.158.csv",
-#                  "LogGrowthB_QSD0.17_YT100_RMAX0.158.csv",
-#                  "LogGrowthC_QSD0.17_YT100_RMAX0.158_SA0.5.csv",
-#                  "LogGrowthD_QSD0.17_YT100_RMAX0.158_SA0.5_QREV0.505.csv"
-#                  ]
+example_files = ["LogGrowthA_QSD0.17_YT100_RMAX0.158.csv",
+                 "LogGrowthB_QSD0.17_YT100_RMAX0.158.csv",
+                 "LogGrowthC_QSD0.17_YT100_RMAX0.158_SA0.5.csv",
+                 "LogGrowthD_QSD0.17_YT100_RMAX0.158_SA0.5_QREV0.505.csv"
+                 ]
 
-# fig, ax = plt.subplots(figsize=(7, 6))
+fig, ax = plt.subplots(figsize=(7, 6))
 
-# # inset ax
-# ax_inset = zoomed_inset_axes(ax, zoom=2.6, loc="center right")
+# inset ax
+ax_inset = zoomed_inset_axes(ax, zoom=2.6, loc="center right")
 
-# for f, file in enumerate(example_files):
+for f, file in enumerate(example_files):
 
-#     dat = pd.read_csv(os.path.join(data_path, file))
-#     run_params = _analysis_utils.extract_run_parameters(dat)
-#     run_name = run_params["runName"]
+    dat = pd.read_csv(os.path.join(data_path, file))
+    run_params = _analysis_utils.extract_run_parameters(dat)
+    run_name = run_params["runName"]
 
-#     x = dat.K
-#     y = dat.P
-#     yerr = dat.P_SEM
+    x = dat.K
+    y = dat.P
+    yerr = dat.P_SEM
 
-#     max_y = np.max(y)
+    max_y = np.max(y)
 
-#     fit_result = _analysis_utils.fit_gompertz_curve(x, y,
-#                                             alpha_space=np.arange(0, 1, 0.05),
-#                                             ylim=(0.05, 0.95),
-#                                             iteration_depth=4
-#                                             )
+    fit_result = _analysis_utils.fit_gompertz_curve(x, y,
+                                            alpha_space=np.arange(0, 1, 0.05),
+                                            ylim=(0.05, 0.95),
+                                            iteration_depth=4
+                                            )
 
-#     fit_params = fit_result["params"]
-#     R2 = fit_result["R2"]
+    fit_params = fit_result["params"]
+    R2 = fit_result["R2"]
 
-#     color = (f) / len(example_files)
+    color = (f) / len(example_files)
 
-#     _analysis_utils.plot_curve_fit( ax, x, y, _curve_fit.mod_gompertz, fit_params, R2, run_name.split("_")[0],
-#                                         color =  color,
-#                                         label = None
-#                                         )
+    _analysis_utils.plot_curve_fit( ax, x, y, _curve_fit.mod_gompertz, fit_params, R2, run_name.split("_")[0],
+                                        color =  color,
+                                        label = None
+                                        )
     
-#     # Plot on main axes
-#     ax.errorbar(x, 1-y, yerr=yerr, fmt="o",
-#                 markersize=0,
-#                 color=plt.cm.viridis(color), label=f"{run_name.split("_")[0]} (R2={_analysis_utils.format_R2_str(R2)})")
+    # Plot on main axes
+    ax.errorbar(x, 1-y, yerr=yerr, fmt="o",
+                markersize=0,
+                color=plt.cm.viridis(color), label=f"{run_name.split("_")[0]} (R2={_analysis_utils.format_R2_str(R2)})")
 
-#     # Plot the SAME data on the inset axes
-#     ax_inset.errorbar(x, 1-y, yerr=yerr, fmt="o",
-#                       markersize=2,
-#                       color=plt.cm.viridis(color))
-#     _analysis_utils.plot_curve_fit( ax_inset, x, y, _curve_fit.mod_gompertz, fit_params, R2, run_name.split("_")[0],
-#                                         color =  color,
-#                                         label = None,
-#                                         alpha = 0.35
-#                                         )
+    # Plot the SAME data on the inset axes
+    ax_inset.errorbar(x, 1-y, yerr=yerr, fmt="o",
+                      markersize=2,
+                      color=plt.cm.viridis(color))
+    _analysis_utils.plot_curve_fit( ax_inset, x, y, _curve_fit.mod_gompertz, fit_params, R2, run_name.split("_")[0],
+                                        color =  color,
+                                        label = None,
+                                        alpha = 0.35
+                                        )
     
-#     xff = np.geomspace(dat.K.min(), dat.K.max(), num=100000)
-#     yff = _curve_fit.mod_gompertz(xff, *fit_params)
-#     metrics = _analysis_utils.calculate_extinction_metrics(xff, yff, fit_params)
+    xff = np.geomspace(dat.K.min(), dat.K.max(), num=100000)
+    yff = _curve_fit.mod_gompertz(xff, *fit_params)
+    metrics = _analysis_utils.calculate_extinction_metrics(xff, yff, fit_params)
 
-#     _analysis_utils.ax_log2_scale(ax)
+    _analysis_utils.ax_log2_scale(ax)
 
-# x_mid_min = 50
-# x_mid_max = 230  
-# y_mid_min = 0.32  
-# y_mid_max = 0.58  
+x_mid_min = 50
+x_mid_max = 230  
+y_mid_min = 0.32  
+y_mid_max = 0.58  
 
-# ax_inset.set_xlim(x_mid_min, x_mid_max)
-# ax_inset.set_ylim(y_mid_min, y_mid_max)
+ax_inset.set_xlim(x_mid_min, x_mid_max)
+ax_inset.set_ylim(y_mid_min, y_mid_max)
 
-# _analysis_utils.ax_log2_scale(ax_inset)
+_analysis_utils.ax_log2_scale(ax_inset)
 
-# ax_inset.tick_params(labelleft=True, labelbottom=True)
+ax_inset.tick_params(labelleft=True, labelbottom=True)
 
-# mark_inset(ax, ax_inset, loc1=2, loc2=3, fc="none", ec="0.5", lw=0.8, linestyle="--")
+mark_inset(ax, ax_inset, loc1=2, loc2=3, fc="none", ec="0.5", lw=0.8, linestyle="--")
 
-# ax.legend()
+ax.legend()
 
-# ax.set_ylabel("Probability of extinction P(E) (n = 10000)")
-# ax.set_xlabel("Carrying Capacity K")
+ax.set_ylabel("Probability of extinction P(E) (n = 10000)")
+ax.set_xlabel("Carrying Capacity K")
 
-# figs_dir.mkdir(parents=True, exist_ok=True)
-# fig.tight_layout()
-# fig.savefig(figs_dir / f"uncertainty_examples.png", dpi=300)
-
+figs_dir.mkdir(parents=True, exist_ok=True)
+fig.tight_layout()
+fig.savefig(figs_dir / f"uncertainty_examples.png", dpi=300)
 
 # fig 2
 
