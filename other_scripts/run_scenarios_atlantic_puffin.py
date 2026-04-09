@@ -17,7 +17,7 @@ QSD_SPACE = np.arange(0.01, 0.30, 0.04)
 THETA_SPACE = [round(_) for _ in np.geomspace(10000, 1000000, 6)]
 UPSIL_SPACE = np.linspace(0, 1, 6)
 
-N_REPEATS = 20
+N_REPEATS = 10000
 
 bird_demogr_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_demographics.csv")
 bird_growth_rate_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_growth_rates.csv")
@@ -64,6 +64,6 @@ if __name__ == '__main__':
     run_scenarios_main.main(RUNS, 
                             RESULTS_PATH, 
                             MULTIPROCESSING_ENABLED=True, 
-                            NUM_WORKERS=8,
+                            NUM_WORKERS=48,
                             OVERWRITE_EXISTING_FILES=True, 
                             CARRYING_CAPACITIES=run_scenarios_main.CARRYING_CAPACITIES)
