@@ -90,6 +90,25 @@ def Ri_model_B(Rmax, species, **kwargs):
     Rf = Rmax * (1 - ((species.Nm+species.Nf)/(species.Km+species.Kf)))
     return Rf, Rm
 
+def Ri_model_alleeB(Rmax, species, **kwargs):
+    """Allee-effect version of Model B (pooled sexes, density-dependent + Allee).
+    Used as the Rgen_model inside Ri_model_C to create Model D+Allee."""
+    if "allee_params_theta_upsil" in kwargs.keys():
+        theta, upsil = kwargs["allee_params_theta_upsil"]
+    else:
+        theta, upsil = 100, 0.9
+
+    N_total = species.Nm + species.Nf
+    K_total = species.Km + species.Kf
+
+    def pc_growth(R, N, K, theta, upsil):
+        return R - ((R * N) / K) - ((theta * upsil) / (theta + N))
+
+    Rm = pc_growth(Rmax, N_total, K_total, theta, upsil)
+    Rf = pc_growth(Rmax, N_total, K_total, theta, upsil)
+
+    return Rf, Rm
+
 def Ri_model_C(Rmax, species, **kwargs):
     if "Rgen_model" in kwargs.keys():
         Rgen_model = kwargs["Rgen_model"]

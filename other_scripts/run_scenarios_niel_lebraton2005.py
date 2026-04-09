@@ -10,13 +10,11 @@ import run_scenarios_main
 
 RESULTS_PATH = Path("..", "results", "simulation_results", "results_N_L_2005")
 
-QSD_SPACE = np.arange(0.01, 0.15, 0.01)
+QSD_SPACE = np.arange(0.01, 0.30, 0.01)
 
 bird_demogr_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_demographics.csv")
 bird_growth_rate_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_growth_rates.csv")
-
 bird_demogr_df = pd.read_csv(bird_demogr_data_file, index_col=0)
-
 bird_growth_rate_df = pd.read_csv(bird_growth_rate_data_file, index_col=0)
 
 RUNS = {}

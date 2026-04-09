@@ -58,7 +58,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
     filename = generate_filename(run_name, qsd, qrev, Sa, Rmax, N0, year_threshold,
                                  varK_schedule=varK_schedule, varK_strength=varK_strength,
                                  **kwargs)
-    
+
     filepath = os.path.join(RESULTS_PATH, filename + ".csv")
 
     if os.path.isfile(filepath) and not OVERWRITE_EXISTING_FILES:
@@ -135,6 +135,11 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             if varK_schedule is not None:
                 dat["K_SCHEDULE"] = varK_schedule
                 dat["STRENGTH"] = varK_strength
+
+            if "allee_params_theta_upsil" in kwargs.keys():
+                theta, upsil = kwargs["allee_params_theta_upsil"]
+                dat["ALLEE_theta"] = theta
+                dat["ALLEE_upsil"] = upsil
 
             rows.append(dat)
 

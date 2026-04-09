@@ -1,3 +1,5 @@
+"""TB 26. Note Fig 2 takes a while to generate"""
+
 import pandas as pd
 import numpy as np
 import os
@@ -148,7 +150,7 @@ for m, model in enumerate(models):
         for i, val in zip(bin_indices, yyerr / yy):
             binned_data[i].append(val)
 
-        ax.scatter(K_norm, yy, s = 1, alpha =0.1, color = "steelblue")
+        ax.scatter(K_norm, yyerr/yy, s = 1, alpha =0.1, color = "steelblue")
 
     ax.axhline(0, color='black', linewidth=0.8, linestyle='--')
 
