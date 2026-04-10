@@ -16,10 +16,6 @@ import matplotlib.ticker
 sys.path.append("..")
 import _curve_fit
 
-# my onedrive path, computer dependent..
-# od_path = "C:\\Users\\Thomas Ball\\OneDrive - University of Cambridge"
-# # od_path = "E:\\OneDrive\\OneDrive - University of Cambridge"
-
 params = ["theta", "upsil"]
 together = False
 
