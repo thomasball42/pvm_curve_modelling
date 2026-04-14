@@ -111,9 +111,7 @@ def simulate(RESULTS_PATH, OVERWRITE_EXISTING_FILES, MULTIPROCESSING_ENABLED,
             mean_tte_sem = np.std(year_extinct) / np.sqrt(extinctions) if extinctions > 0 else np.nan
 
             survival_probability = 1 - extinctions / run_count
-            survival_probability_sem = np.sqrt(
-                (survival_probability * (1 - survival_probability)) / run_count
-            ) if run_count > 0 else np.nan
+            survival_probability_sem = np.sqrt(survival_probability * (1 - survival_probability) / run_count) if run_count > 0 else np.nan
 
             dat = {
                 "runName": filename,

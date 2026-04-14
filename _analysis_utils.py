@@ -187,6 +187,10 @@ def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False, alpha =
     color = kwargs.pop("color", None) 
     marker = kwargs.pop("marker", None)
     colormap = kwargs.pop("colormap", "viridis")
+    skip_nans = kwargs.pop("skip_nans", False)
+    
+    if skip_nans and np.isnan(R2):
+        return
     
     if color is None:
         if np.isnan(R2):

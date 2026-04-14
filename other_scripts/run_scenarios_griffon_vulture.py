@@ -11,13 +11,14 @@ import run_scenarios_main
 # to allow model AlleeB
 import _models
 
-RESULTS_PATH = Path("..", "results", "simulation_results", "results_atlantic_puffin")
+RESULTS_PATH = Path("..", "results", "simulation_results", "results_griffon_vulture")
 
 QSD_SPACE = np.arange(0.01, 0.30, 0.04)
-THETA_SPACE = [round(_) for _ in np.geomspace(10000, 1000000, 6)]
-UPSIL_SPACE = np.linspace(0, 1, 6)
+THETA_SPACE = [round(_) for _ in np.geomspace(1, 100000, 10)]
 
-N_REPEATS = 10000
+UPSIL_SPACE = np.linspace(0, 1, 9)
+
+N_REPEATS = 100
 
 bird_demogr_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_demographics.csv")
 bird_growth_rate_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_growth_rates.csv")
@@ -30,7 +31,7 @@ for index, row in bird_demogr_df.iterrows():
 
     bird = bird_demogr_df.loc[index]
 
-    if "puffin" not in bird.name.lower():
+    if "vulture" not in bird.name.lower():
         continue
 
     bird_B = bird["s_i>="]
@@ -56,7 +57,7 @@ for index, row in bird_demogr_df.iterrows():
                         "allee_params_theta_upsil": (theta, upsil)},
             }
 
-            runName = f"{index}_{bird['Binomial']}_theta{theta}_upsil{upsil}"
+            runName = f"{index}_theta{theta}_upsil{upsil}"
 
             RUNS[runName] = task_params
 
@@ -64,6 +65,6 @@ if __name__ == '__main__':
     run_scenarios_main.main(RUNS, 
                             RESULTS_PATH, 
                             MULTIPROCESSING_ENABLED=True, 
-                            NUM_WORKERS=48,
-                            OVERWRITE_EXISTING_FILES=True, 
+                            NUM_WORKERS=10,
+                            OVERWRITE_EXISTING_FILES=False, 
                             CARRYING_CAPACITIES=run_scenarios_main.CARRYING_CAPACITIES)

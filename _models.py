@@ -114,11 +114,12 @@ def Ri_model_C(Rmax, species, **kwargs):
         Rgen_model = kwargs["Rgen_model"]
     else:
         Rgen_model = Ri_model_B
-        
+
     if species.Sa is None or species.B is None:
         raise Exception("Parameters 'SA' and 'B' undefined in ModelC run.")
     else:
         Sa, B = species.Sa,species.B
+
     tsp = copy.copy(species)
     if len(species.Nm_hist) > B:
         fecundity_factor = min([species.Nm_hist[-B+1]/species.Nf_hist[-B+1],
@@ -139,7 +140,8 @@ def Ri_model_C(Rmax, species, **kwargs):
             tsp.Nf = species.Nf_hist[-1]
         fecundity_factor = 1
 
-    Rm, Rf = Rgen_model(species.Rmax, tsp)
+    Rm, Rf = Rgen_model(species.Rmax, tsp, **kwargs)
+
     t2m = Rm + 1 - Sa
     Rm_prime = Sa - 1 + (t1m * t2m * fecundity_factor)
     t2f = Rf + 1 - Sa

@@ -61,12 +61,12 @@ for f, file in enumerate(example_files):
                                         label = None
                                         )
     
-    # Plot on main axes
+    # Plot on main ax
     ax.errorbar(x, 1-y, yerr=yerr, fmt="o",
                 markersize=0,
                 color=plt.cm.viridis(color), label=f"{run_name.split("_")[0]} (R2={_analysis_utils.format_R2_str(R2)})")
 
-    # Plot the SAME data on the inset axes
+    # Plot the SAME data on the inset ax
     ax_inset.errorbar(x, 1-y, yerr=yerr, fmt="o",
                       markersize=2,
                       color=plt.cm.viridis(color))
@@ -147,10 +147,10 @@ for m, model in enumerate(models):
         bin_indices = np.digitize(K_norm, bins) - 1  
         bin_indices = np.clip(bin_indices, 0, n_bins - 1) 
 
-        for i, val in zip(bin_indices, yyerr / yy):
+        for i, val in zip(bin_indices, 100 * yyerr / yy):
             binned_data[i].append(val)
 
-        ax.scatter(K_norm, yyerr/yy, s = 1, alpha =0.1, color = "steelblue")
+        ax.scatter(K_norm, 100 * yyerr/yy, s = 1, alpha =0.1, color = "steelblue")
 
     ax.axhline(0, color='black', linewidth=0.8, linestyle='--')
 
@@ -166,7 +166,7 @@ for m, model in enumerate(models):
     )
 
     ax.set_xlim(0, 1)
-    ax.set_ylim(-0.01, 0.13)
+    ax.set_ylim(-1, 13)
     ax.set_xlabel("K (normalised)")
     ax.set_ylabel("%uncertainty in P")
 
