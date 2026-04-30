@@ -62,7 +62,7 @@ for b, bird in enumerate(bird_demo_df.Species.unique()):
     ax.fill_between(x, min_y, max_y, color=color, alpha=0.4)
     
     ax.set_xlim(x[runs_df.mean(axis=1).values > 0.0041].min(), 
-                x[runs_df.mean(axis=1).values < 0.997].max()
+                x[runs_df.mean(axis=1).values < 0.9998].max()
                 )
 
     ax.plot(x, mean_y, color=color, linewidth=1.0)

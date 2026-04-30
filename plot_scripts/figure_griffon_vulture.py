@@ -12,69 +12,92 @@ import _analysis_utils
 import _curve_fit
 
 data_path = Path("..\\results\\simulation_results\\results_griffon_vulture")
-figs_dir = Path("..", "figs", "figs_atlantic_puffin")
+figs_dir = Path("..", "figs", "figs_griffon_vulture")
 
 list_of_files = []
 for path, subdirs, files in os.walk(data_path):
     for name in files:
         list_of_files.append(os.path.join(path, name))
 
-filter = ["theta1", "qrev1"]
-exclude = [
-            "qsd0.2"
-            ]
+fig, axs = plt.subplots(1, 3, figsize=(12, 5), sharey=True)
 
-list_of_files = [f for f in list_of_files if all(filt.lower() in f.lower() for filt in filter) and not any(excl.lower() in f.lower() for excl in exclude)]
+for __, upsil_filt in enumerate(["upsil0.0", "upsil0.1", "upsil0.2"]):
 
-print(f"{len(list_of_files)} files found with filter '{filter}' and excluding '{exclude}'.")
+    ax = axs.flatten()[__]
 
-def extract_qsd_from_filename(filepath):
-    match = re.search(r'QSD([\d.]+)', filepath, re.IGNORECASE)
-    return float(match.group(1)) if match else None
+    filter = ["theta35112", "qrev1", upsil_filt]
+    exclude = [
+                # "qsd0.2"
+                ]
 
-qsd_groups = {}
-for file in list_of_files:
-    qsd = extract_qsd_from_filename(file)
-    if qsd is not None:
-        qsd_groups.setdefault(qsd, []).append(file)
+    sub_files = [f for f in list_of_files if all(filt.lower() in f.lower() for filt in filter) and not any(excl.lower() in f.lower() for excl in exclude)]
 
-fig, ax = plt.subplots()
+    print(f"{len(sub_files)} files found with filter '{filter}' and excluding '{exclude}'.")
 
-unique_qsds = sorted(qsd_groups.keys())
+    def extract_qsd_from_filename(filepath):
+        match = re.search(r'QSD([\d.]+)', filepath, re.IGNORECASE)
+        return float(match.group(1)) if match else None
 
-for q, qsd_val in enumerate(unique_qsds):
+    qsd_groups = {}
+    for file in sub_files:
+        qsd = extract_qsd_from_filename(file)
+        if qsd is not None:
+            qsd_groups.setdefault(qsd, []).append(file)
 
-    files_for_qsd = qsd_groups[qsd_val]
-    all_runs = []
+    unique_qsds = sorted(qsd_groups.keys())
 
-    for file in files_for_qsd:
-        dat = pd.read_csv(file)
+    for q, qsd_val in enumerate(unique_qsds):
 
-        # if np.max(dat.P) < 1:
-        #     continue
+        files_for_qsd = qsd_groups[qsd_val]
+        all_runs = []
 
-        all_runs.append(dat.set_index("K")["P"])
+        for file in files_for_qsd:
+            dat = pd.read_csv(file)
 
-    if len(all_runs) == 0:
-        print(f"QSD={qsd_val}: no runs reached max P, skipping.")
-        continue
+            if np.max(dat.P) < 1:
+                continue
 
-    runs_df = pd.concat(all_runs, axis=1)
-    x = runs_df.index.values
-    max_y = 1 - runs_df.min(axis=1).values 
-    min_y = 1 - runs_df.max(axis=1).values 
-    mean_y = 1 - runs_df.mean(axis=1).values
+            all_runs.append(dat.set_index("K")["P"])
 
-    color = plt.cm.viridis(q / max(len(unique_qsds) - 1, 1))
+        if len(all_runs) == 0:
+            print(f"QSD={qsd_val}: no runs reached max P, skipping.")
+            continue
+        
+        theta = dat.ALLEE_theta.iloc[0]
+        upsil = dat.ALLEE_upsil.iloc[0]
+        qrev = dat.QREV.iloc[0]
 
+        runs_df = pd.concat(all_runs, axis=1)
+        x = runs_df.index.values
+        max_y = 1 - runs_df.min(axis=1).values 
+        min_y = 1 - runs_df.max(axis=1).values 
+        mean_y = 1 - runs_df.mean(axis=1).values
+        sem_y = runs_df.sem(axis=1).values
 
-    ax.fill_between(x, min_y, max_y, color=color, alpha=0.4, label=f"QSD={qsd_val}")
-    ax.plot(x, mean_y, color=color, linewidth=1.5)
+        color = plt.cm.viridis(q / max(len(unique_qsds) - 1, 1))
 
-    _analysis_utils.ax_log2_scale(ax)
+        
+
+        fit_result = _analysis_utils.fit_gompertz_curve(x, mean_y, 
+                                                    alpha_space=np.arange(0, 1, 0.05), 
+                                                    ylim=(0.05, 0.95),
+                                                    iteration_depth= 4
+                                                    )
+
+        # label = f"$\\sigma$={qsd_val}, $\\theta={theta}$, $\\upsilon={upsil}$, $q_{{rev}}={qrev}$, R2={_analysis_utils.format_R2_str(fit_result['R2'])}"
+        label = f"$\\sigma$={qsd_val}, $\\theta={theta}$, R2={_analysis_utils.format_R2_str(fit_result['R2'])}"
+
+        ax.fill_between(x, min_y, max_y, color=color, alpha=0.4, label=label)
+        ax.plot(x, mean_y, color=color, linewidth=1.5)
+
+        _analysis_utils.ax_log2_scale(ax)
+        
+        ax.set_xlabel("K")
+        ax.set_ylabel("P(E)")
+        ax.legend()
+    ax.set_title(f"$\\upsilon$={upsil}")
     
-ax.set_xlabel("K")
-ax.set_ylabel("P(E)")
-ax.legend()
-plt.tight_layout()
+fig.tight_layout()
+figs_dir.mkdir(parents=True, exist_ok=True)
+fig.savefig(figs_dir / "griffon_vulture_P_curves.png", dpi=300)
 plt.show()

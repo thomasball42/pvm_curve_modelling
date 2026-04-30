@@ -125,10 +125,8 @@ def calculate_kx_analytical(X, a, b, alpha):
     return ((np.log(-np.log(X)) - a) / b) ** (1 / alpha)
 
 
-def calculate_extinction_metrics(xff, yff, params):
+def calculate_extinction_metrics(xff, yff, params, kXs = np.arange(0.1, 1.0, 0.1)):
     """
-    Calculate extinction probability metrics from fitted curve.
-    
     Parameters
     ----------
     xff : array-like
@@ -137,6 +135,8 @@ def calculate_extinction_metrics(xff, yff, params):
         Fitted y values
     params : tuple
         Fitted Gompertz parameters (a, b, alpha)
+    kXs : array-like, optional
+        Probability thresholds for calculating kX values (default is np.arange(0.1, 1.0, 0.1) so 0.1, 0.2 .. 0.9 etc.)
     
     Returns
     -------
@@ -146,7 +146,6 @@ def calculate_extinction_metrics(xff, yff, params):
         - dPdK_tp: turning point of dP/dK (maximum gradient)
     """
     # Calculate kX values for different thresholds
-    kXs = np.arange(0.1, 1.0, 0.1)
     kX_vals = [calculate_kx_analytical(X, *params) for X in kXs]
     kX_names = [f"k{int(X*100)}" for X in kXs]
     
@@ -253,9 +252,7 @@ def load_existing_fits(data_fits_path, overwrite):
     else:
         data_fits = pd.DataFrame()
         existing_runs = set()
-    
     return data_fits, existing_runs
-
 
 
 def extract_run_parameters(dat):

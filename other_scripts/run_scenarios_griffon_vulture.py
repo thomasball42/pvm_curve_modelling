@@ -18,7 +18,7 @@ THETA_SPACE = [round(_) for _ in np.geomspace(1, 100000, 10)]
 
 UPSIL_SPACE = np.linspace(0, 1, 9)
 
-N_REPEATS = 100
+N_REPEATS = 1000
 
 bird_demogr_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_demographics.csv")
 bird_growth_rate_data_file = Path("manuscript_inputs", "niel_lebreton2005_bird_growth_rates.csv")
