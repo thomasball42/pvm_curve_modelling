@@ -9,11 +9,11 @@ from functools import partial
 RESULTS_DIR = Path("..", "results", "individual_simulation_results", "individual_simulation_examples")
 
 CARRYING_CAPACITY_SPACE = [int(x) for x in np.geomspace(1, 1000000, 50)]
-MP_THREADS = 32
+MP_THREADS = 64
 
-num_runs = 200
+num_runs = 500
 year_threshold = 100
-mortality_space = np.arange(0.01, 0.05, 0.01)
+mortality_space = np.arange(0.005, 0.05, 0.005)
 
 if not RESULTS_DIR.exists():
     RESULTS_DIR.mkdir(parents=True)
