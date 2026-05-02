@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-_carrying_capacity = 3000
-mortality_rate = 0.08
+_carrying_capacity = 10000
+mortality_rate = 0.03
 YEARS = 100
 
 def main(years = YEARS,
@@ -29,7 +29,7 @@ def main(years = YEARS,
 
     PEAK_FORAGING_AGE = kwargs.get("PEAK_FORAGING_AGE", 5)
     INITIAL_ENERGY = kwargs.get("INITIAL_ENERGY", 3)
-    BREEDING_AGE = kwargs.get("BREEDING_AGE", 2)
+    BREEDING_AGE = kwargs.get("BREEDING_AGE", 3)
 
     df = pd.DataFrame(columns=["Year", "Population", "Resources"])
 
@@ -38,8 +38,8 @@ def main(years = YEARS,
             self.amount = amount
 
         def regrow(self):
-            # self.amount = min(self.amount + np.random.poisson(RESOURCE_REGROWTH), RESOURCE_CAP)
-            self.amount = self.amount + RESOURCE_REGROWTH
+            growth = RESOURCE_REGROWTH * (1 - self.amount / RESOURCE_CAP)
+            self.amount += max(0, np.random.poisson(max(1, int(growth))))
 
     class Individual:
         
@@ -65,7 +65,7 @@ def main(years = YEARS,
         def breeding_success_prob(self):
             if self.age < BREEDING_AGE:
                 return 0
-            age_factor = np.exp(-0.12*(self.age - BREEDING_AGE))
+            age_factor = np.exp(-0.055*(self.age - BREEDING_AGE))
             return min(1, age_factor)
         
         def is_alive(self): 
@@ -122,8 +122,7 @@ def main(years = YEARS,
     year, extant = simulate()
 
     if plot:
-        df.plot(x="Year", y="Population")
-        df.plot(x="Year", y="Resources")
+        df.plot(x="Year", y=["Population", "Resources"], secondary_y="Resources")
         plt.show()
 
     return year, extant

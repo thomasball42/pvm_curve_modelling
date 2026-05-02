@@ -6,13 +6,15 @@ import tqdm
 import multiprocessing as mp
 from functools import partial
 
-RESULTS_DIR = Path("..", "results", "individual_simulation_results", "individual_simulation_examples_2 ")
+RESULTS_DIR = Path("..", "results", "individual_simulation_results", "individual_simulation_examples")
 
 CARRYING_CAPACITY_SPACE = [int(x) for x in np.geomspace(1, 1000000, 50)]
 
+THREAD_COUNT = mp.cpu_count() - 4 if mp.cpu_count() > 4 else 1
+
 num_runs = 200
 year_threshold = 100
-mortality_space = np.arange(0.08, 0.2, 0.02)
+mortality_space = np.arange(0.01, 0.05, 0.01)
 
 if not RESULTS_DIR.exists():
     RESULTS_DIR.mkdir(parents=True)
@@ -62,7 +64,7 @@ def run_batch(carrying_capacity, mortality_rate, num_runs, year_threshold, pool)
 if __name__ == "__main__":
     total_runs = len(CARRYING_CAPACITY_SPACE) * num_runs * len(mortality_space)
 
-    with mp.Pool(processes=mp.cpu_count()) as pool:
+    with mp.Pool(processes=THREAD_COUNT) as pool:
         with tqdm.tqdm(total=total_runs, desc="Running simulations") as pbar:
 
             for mortality_rate in mortality_space:

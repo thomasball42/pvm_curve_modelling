@@ -50,7 +50,7 @@ for f, file in enumerate(list_of_files):
                                     "Individual-based simulation",
                                     label = f"Mortality: {mort} (R$^2$: {_analysis_utils.format_R2_str(R2)})",
                                     color = color,colormap = "viridis",
-                                    skip_nans = True
+                                    skip_nans = False
                                     )
 
     yerr = dat.P_SEM
