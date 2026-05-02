@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-_carrying_capacity = 300
-mortality_rate = 0.2
+_carrying_capacity = 3000
+mortality_rate = 0.11
 YEARS = 100
 
 def main(years = YEARS,
@@ -21,16 +21,15 @@ def main(years = YEARS,
     RESOURCE_REGROWTH = carrying_capacity
     RESOURCE_CAP = carrying_capacity
     
-    P_FORAGE = kwargs.get("P_FORAGE", 1)
     P_REPRODUCE = kwargs.get("P_REPRODUCE", 1)
     P_DEATH = kwargs.get("P_DEATH", 0.15)
 
-    FOOD_PER_FORAGE = kwargs.get("FOOD_PER_FORAGE", 1.0)
+    FOOD_PER_FORAGE = kwargs.get("FOOD_PER_FORAGE", 1)
     ENERGY_DECAY = kwargs.get("ENERGY_DECAY", 1)
 
     PEAK_FORAGING_AGE = kwargs.get("PEAK_FORAGING_AGE", 5)
     INITIAL_ENERGY = kwargs.get("INITIAL_ENERGY", 3)
-    BREEDING_AGE = kwargs.get("BREEDING_AGE", 3)
+    BREEDING_AGE = kwargs.get("BREEDING_AGE", 2)
 
     df = pd.DataFrame(columns=["Year", "Population", "Resources"])
 
@@ -40,12 +39,13 @@ def main(years = YEARS,
 
         def regrow(self):
             # self.amount = min(self.amount + np.random.poisson(RESOURCE_REGROWTH), RESOURCE_CAP)
-            self.amount = min(self.amount + np.random.poisson(RESOURCE_REGROWTH), RESOURCE_CAP)
+            self.amount = self.amount + RESOURCE_REGROWTH
 
     class Individual:
         
         def __init__(self, age=None):
             self.energy = INITIAL_ENERGY
+            # self.energy = np.random.normal(loc=INITIAL_ENERGY, scale=INITIAL_ENERGY)
             self.age = np.random.poisson(BREEDING_AGE) if age is None else age
             self.is_breeding = False
 
@@ -54,7 +54,6 @@ def main(years = YEARS,
             age_factor = np.exp(-((self.age - PEAK_FORAGING_AGE) ** 2) / (2 * PEAK_FORAGING_AGE ** 2))
             resource_factor = resource_amount / (resource_cap)
             return age_factor * resource_factor
-            # return resource_factor
 
         def forage(self, resources, resource_cap):
             p = self.forage_success_prob(resources[0].amount, resource_cap)
@@ -64,11 +63,9 @@ def main(years = YEARS,
                 self.energy += taken
 
         def breeding_success_prob(self):
-            """Simple function of energy and age."""
             if self.age < BREEDING_AGE:
                 return 0
-            # age_factor = np.exp(-((self.age - BREEDING_AGE) ** 2) / (BREEDING_AGE ** 2))
-            age_factor = np.exp(-0.3*(self.age - BREEDING_AGE))
+            age_factor = np.exp(-0.12*(self.age - BREEDING_AGE))
             return min(1, age_factor)
         
         def is_alive(self): 
@@ -96,9 +93,14 @@ def main(years = YEARS,
             offspring = []
             for i in range(0, len(population) - 1, 2):
                 a, b = population[i], population[i + 1]
-                if a.age >= BREEDING_AGE and b.age >= BREEDING_AGE:
-                    if random.random() < P_REPRODUCE:
-                        offspring.append(Individual(age=0))
+                find_chance = len(population)**2 / carrying_capacity**2 # area based so squared
+
+                if a.age >= BREEDING_AGE and b.age >= BREEDING_AGE and random.random() < find_chance:
+                    p_a = a.breeding_success_prob()
+                    p_b = b.breeding_success_prob()
+                    if random.random() < p_a * p_b * P_REPRODUCE:
+                        n_offspring = np.random.poisson(1) 
+                        offspring.extend([Individual(age=0) for _ in range(n_offspring)])
         
             population.extend(offspring)
 
@@ -121,6 +123,7 @@ def main(years = YEARS,
 
     if plot:
         df.plot(x="Year", y="Population")
+        df.plot(x="Year", y="Resources")
         plt.show()
 
     return year, extant

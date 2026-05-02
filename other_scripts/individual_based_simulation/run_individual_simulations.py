@@ -6,11 +6,11 @@ import tqdm
 import multiprocessing as mp
 from functools import partial
 
-RESULTS_DIR = Path("..", "results", "individual_simulation_results", "individual_simulation_examples")
+RESULTS_DIR = Path("..", "results", "individual_simulation_results", "individual_simulation_examples_2 ")
 
 CARRYING_CAPACITY_SPACE = [int(x) for x in np.geomspace(1, 1000000, 50)]
 
-num_runs = 1000
+num_runs = 50
 year_threshold = 100
 mortality_space = np.arange(0.15, 0.3, 0.05)
 
