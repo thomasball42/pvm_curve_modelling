@@ -10,9 +10,9 @@ RESULTS_DIR = Path("..", "results", "individual_simulation_results", "individual
 
 CARRYING_CAPACITY_SPACE = [int(x) for x in np.geomspace(1, 1000000, 50)]
 
-num_runs = 50
+num_runs = 200
 year_threshold = 100
-mortality_space = np.arange(0.15, 0.3, 0.05)
+mortality_space = np.arange(0.08, 0.2, 0.02)
 
 if not RESULTS_DIR.exists():
     RESULTS_DIR.mkdir(parents=True)

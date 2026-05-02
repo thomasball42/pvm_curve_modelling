@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 _carrying_capacity = 3000
-mortality_rate = 0.11
+mortality_rate = 0.08
 YEARS = 100
 
 def main(years = YEARS,
@@ -44,8 +44,8 @@ def main(years = YEARS,
     class Individual:
         
         def __init__(self, age=None):
-            self.energy = INITIAL_ENERGY
-            # self.energy = np.random.normal(loc=INITIAL_ENERGY, scale=INITIAL_ENERGY)
+            # self.energy = INITIAL_ENERGY
+            self.energy = np.random.poisson(INITIAL_ENERGY)
             self.age = np.random.poisson(BREEDING_AGE) if age is None else age
             self.is_breeding = False
 
