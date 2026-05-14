@@ -20,7 +20,7 @@ import _analysis_utils as utils
 SCALE_1_0 = False
 PLOT_PSPACE = False
 PLOT_CURVES = False
-OVERWRITE = True
+OVERWRITE = False
 
 # Paths
 RESULTS_PATH = "..\\results\\simulation_results\\results_main"
@@ -53,8 +53,6 @@ def process_simulation_file(file, data_fits_path, existing_runs,
     params = fit_result['params']
     R2 = fit_result['R2']
     
-    print(f"R2: {R2}")
-    
     # Calculate extinction metrics
     xff = np.geomspace(dat.K.min(), dat.K.max(), num=100000)
     yff = _curve_fit.mod_gompertz(xff, *params)
@@ -69,9 +67,9 @@ def process_simulation_file(file, data_fits_path, existing_runs,
                 "model_name", *param_names, "R2", "RSD", "RMSE", "MAX_Y", 
                 *kX_names, "dPdK_tp"]] = [
         run_params['model'], run_params['runName'], run_params['rmax'], 
-        run_params['qsd'], run_params['qrev'], run_params['B'], run_params['sa'],
+        run_params['qsd'], run_params['qrev'], run_params['b'], run_params['sa'],
         fit_result['model_name'], *params, R2, fit_result['rsd'], 
-        fit_result['rmse'], run_params['max_y'], 
+        fit_result['rmse'], run_params['max_p'], 
         *[metrics[name] for name in kX_names], metrics['dPdK_tp']
     ]
     

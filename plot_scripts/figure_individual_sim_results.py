@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 import _curve_fit
 
-data_path = Path("..\\results\\individual_simulation_results\\individual_simulation_examples")
+data_path = Path("..\\results\\simulation_results\\individual_simulation_examples")
 figs_dir = Path("..", "figs", "individual_simulation_examples")
 data_fits_path = Path("..", "results", "data_fits", "data_fits_individual_sims")
 
@@ -21,11 +21,13 @@ for path, subdirs, files in os.walk(data_path):
 
 data_fits_path = Path(data_fits_path) / f"data_fits_individual_sims.csv"
 
-fig, ax = plt.subplots(figsize=(6, 5))
+fig, ax = plt.subplots(figsize=(7, 6))
 
 for f, file in enumerate(list_of_files):
 
     mort = [_ for _ in file.split("_") if "mort" in _][0].split("mort")[1]
+
+    print(file, mort)
 
     dat = pd.read_csv(file)
 
@@ -39,7 +41,7 @@ for f, file in enumerate(list_of_files):
     fit_result = _analysis_utils.fit_gompertz_curve(x, y, 
                                                 alpha_space=np.arange(0, 1, 0.05), 
                                                 ylim=(0.05, 0.95),
-                                                iteration_depth= 4,
+                                                iteration_depth= 6,
                                                 )
     
     fit_params = fit_result["params"]
@@ -60,7 +62,7 @@ for f, file in enumerate(list_of_files):
 
 ax.legend(loc="upper right")
 ax.set_xlabel("Resource availability (~K)")
-ax.set_ylabel("P(extinction) (N = 1000)")
+ax.set_ylabel("P(extinction) (N = 500)")
 
 fig.tight_layout()
 
