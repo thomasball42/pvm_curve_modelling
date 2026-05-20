@@ -1,5 +1,6 @@
 """TB 26. Note Fig 2 takes a while to generate"""
 
+from matplotlib.patches import Patch
 import pandas as pd
 import numpy as np
 import os
@@ -169,6 +170,11 @@ for m, model in enumerate(models):
     ax.set_ylim(-1, 13)
     ax.set_xlabel("K (normalised)")
     ax.set_ylabel("%uncertainty in P")
+
+    legend_patch = [
+        Patch(facecolor="white", alpha=0.0, label=f"{model.replace('LogGrowth', 'Model ')}")
+        ]
+    ax.legend(handles=legend_patch, fontsize=10)
 
 figs_dir.mkdir(parents=True, exist_ok=True)
 fig.tight_layout()
