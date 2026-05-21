@@ -179,6 +179,7 @@ def ax_log2_scale(ax):
         return f'$10^{{{int(np.log10(x))}}}$'
     
     ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
+    return ax
 
 def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False, alpha = 0.7,
                    **kwargs):
