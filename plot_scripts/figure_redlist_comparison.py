@@ -81,9 +81,6 @@ QUANT_MARKERS = {
     1:    ("v", None),
 }
 
-# ------------------------------------------------------------------
-# Compute per-model median curves + combined bands across all models
-# ------------------------------------------------------------------
 curve_median = {m: {} for m in model_names}
 
 # Combined bands: pool all model curves together per tc
@@ -120,7 +117,6 @@ for tc, crit in redlist_criteria.items():
     col = COLOURS[tc]
     n_thresh = crit["mature_individs"]
 
-    # Combined bands (once per tc, in grey)
     ax.fill_between(N_range,
                     curve_lo_combined[tc], curve_hi_combined[tc],
                     color="grey", alpha=0.15, linewidth=0)
@@ -128,27 +124,27 @@ for tc, crit in redlist_criteria.items():
                     curve_q25_combined[tc], curve_q75_combined[tc],
                     color="grey", alpha=0.25, linewidth=0)
 
-    # Per-model median lines
+    # model median lines
     for model_name in model_names:
         ax.plot(N_range, curve_median[model_name][tc],
                 color=MODEL_COLOURS[model_name], linewidth=1.8,
                 linestyle="--", alpha=0.95)
 
-    # Red List threshold diamond
+    # red List threshold diamond
     ax.scatter(
         n_thresh, crit["p_ext"],
-        marker="D", s=90, color=col,
-        edgecolors="black", linewidths=0.8,
+        marker="D", s=130, color=col,
+        edgecolors="black", linewidths=2,
         zorder=6,
     )
 
-    # Red List mammal quantile markers
+    # red List mammal quantile markers
     for q, p_val in zip(quants, list(cr_quants[tc].values())):
         marker, _ = QUANT_MARKERS[q]
         ax.scatter(
             n_thresh, p_val,
             color=col, edgecolors="white", linewidths=0.6,
-            marker=marker, s=70, zorder=5,
+            marker=marker, s=80, zorder=5,
         )
 
 ax.set_xscale("log", base=2)
@@ -162,10 +158,8 @@ ax.set_xlabel("Mature individuals (N)", fontsize=11)
 ax.set_ylabel("Extinction probability P(E)", fontsize=11)
 
 # ------------------------------------------------------------------
-# Legend
+# legend (s..)
 # ------------------------------------------------------------------
-
-
 model_legend = [
     Line2D([0], [0], color=MODEL_COLOURS[m], linewidth=1.8, linestyle="--",
            label=f"{m.replace('_', '').replace('model', 'Model')} median")
