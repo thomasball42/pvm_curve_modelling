@@ -26,7 +26,7 @@ model_names = [
 
 number_of_closest_X = 4
 
-figs_dir = Path("..", "figs", "figs_fragment_test")
+figs_dir = Path("..", "figs_non_ms", "figs_fragment_test")
 
 all_data_fits = {}
 for model_name in model_names:

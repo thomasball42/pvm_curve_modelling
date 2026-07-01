@@ -60,12 +60,14 @@ mammal_df = process_mammal_data.return_extended_mammal_data(
 
 all_data_fits = {}
 for model_name in model_names:
+
     path = Path("..", "results", "data_fits", "data_fits_main",
                 f"data_fits_{model_name}.csv")
     df = pd.read_csv(path, index_col=0).dropna(
         subset=["param_a", "param_b", "param_alpha"]
     )
-    all_data_fits[model_name] = df[df.MAX_Y == 1]
+    df = df[df.MAX_Y > 0.999]
+    all_data_fits[model_name] = df.copy()
 
 cr_quants = {}
 for tc in redlist_criteria:
@@ -83,52 +85,46 @@ QUANT_MARKERS = {
 
 curve_median = {m: {} for m in model_names}
 
-# Combined bands: pool all model curves together per tc
 curve_lo_combined  = {}
 curve_hi_combined  = {}
 curve_q25_combined = {}
 curve_q75_combined = {}
 
-for tc in redlist_criteria:
-    all_curves_combined = []
+curve_median = {}
+all_curves_combined = []
 
-    for model_name in model_names:
-        data_fits = all_data_fits[model_name]
-        model_curves = np.array([
-            [1 - _curve_fit.mod_gompertz(n, row["param_a"], row["param_b"], row["param_alpha"])
-             for n in N_range]
-            for _, row in data_fits.iterrows()
-        ])
-        curve_median[model_name][tc] = np.nanmedian(model_curves, axis=0)
-        all_curves_combined.append(model_curves)
+for model_name in model_names:
+    data_fits = all_data_fits[model_name]
+    model_curves = np.array([
+        [1 - _curve_fit.mod_gompertz(n, row["param_a"], row["param_b"], row["param_alpha"])
+         for n in N_range]
+        for _, row in data_fits.iterrows()
+    ])
+    curve_median[model_name] = np.nanmedian(model_curves, axis=0)
+    all_curves_combined.append(model_curves)
 
-    all_curves_combined = np.vstack(all_curves_combined)
-    curve_lo_combined[tc]  = np.nanpercentile(all_curves_combined, 10, axis=0)
-    curve_hi_combined[tc]  = np.nanpercentile(all_curves_combined, 90, axis=0)
-    curve_q25_combined[tc] = np.nanpercentile(all_curves_combined, 25, axis=0)
-    curve_q75_combined[tc] = np.nanpercentile(all_curves_combined, 75, axis=0)
+all_curves_combined = np.vstack(all_curves_combined)
+curve_lo_combined  = np.nanpercentile(all_curves_combined, 10, axis=0)
+curve_hi_combined  = np.nanpercentile(all_curves_combined, 90, axis=0)
+curve_q25_combined = np.nanpercentile(all_curves_combined, 25, axis=0)
+curve_q75_combined = np.nanpercentile(all_curves_combined, 75, axis=0)
+
 
 # ------------------------------------------------------------------
 # Plot
 # ------------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(8, 5))
 
+ax.fill_between(N_range, curve_lo_combined, curve_hi_combined, color="grey", alpha=0.15, linewidth=0)
+ax.fill_between(N_range, curve_q25_combined, curve_q75_combined, color="grey", alpha=0.25, linewidth=0)
+
+for model_name in model_names:
+    ax.plot(N_range, curve_median[model_name],
+            color=MODEL_COLOURS[model_name], linewidth=1.8, linestyle="--", alpha=0.95)
+
 for tc, crit in redlist_criteria.items():
     col = COLOURS[tc]
     n_thresh = crit["mature_individs"]
-
-    ax.fill_between(N_range,
-                    curve_lo_combined[tc], curve_hi_combined[tc],
-                    color="grey", alpha=0.15, linewidth=0)
-    ax.fill_between(N_range,
-                    curve_q25_combined[tc], curve_q75_combined[tc],
-                    color="grey", alpha=0.25, linewidth=0)
-
-    # model median lines
-    for model_name in model_names:
-        ax.plot(N_range, curve_median[model_name][tc],
-                color=MODEL_COLOURS[model_name], linewidth=1.8,
-                linestyle="--", alpha=0.95)
 
     # red List threshold diamond
     ax.scatter(
@@ -139,7 +135,8 @@ for tc, crit in redlist_criteria.items():
     )
 
     # red List mammal quantile markers
-    for q, p_val in zip(quants, list(cr_quants[tc].values())):
+    for q in quants:
+        p_val = cr_quants[tc][q]
         marker, _ = QUANT_MARKERS[q]
         ax.scatter(
             n_thresh, p_val,

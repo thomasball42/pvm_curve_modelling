@@ -160,7 +160,9 @@ for m, run_model in enumerate(models):
     ax.legend(fontsize=7, ncol=2)
     ax.set_title(f"Model {run_model}")
     ax.set_xlabel("K")
-    ax.set_ylabel(f"Mean time to extinction (n={N})")
+    # ax.set_ylabel(f"Mean time to extinction (Years, n={N})")
+
+fig.supylabel(f"Mean time to extinction (Years, n={N})")
 
 figs_dir.mkdir(parents=True, exist_ok=True)
 fig.tight_layout()
