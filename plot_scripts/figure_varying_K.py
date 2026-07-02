@@ -28,10 +28,13 @@ files = [file for file in list_of_files if ".csv" in file and "LogGrowth" in fil
 
 base_file = [file for file in files if "RMAX0.3.csv" in file]
 
+models = [
+        # "increase", 
+          "decrease", 
+          "random_walk"
+          ]
 
-models = ["increase", "decrease", "random_walk"]
-
-fig, axs = plt.subplots(3, figsize=FIGSIZE, sharex=True, sharey=True)
+fig, axs = plt.subplots(len(models), figsize=FIGSIZE, sharex=True, sharey=True)
 
 for m, run_model in enumerate(models):
 

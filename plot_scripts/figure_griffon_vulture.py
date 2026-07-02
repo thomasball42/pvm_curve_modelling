@@ -25,9 +25,10 @@ for __, upsil_filt in enumerate(["upsil0.0", "upsil0.1", "upsil0.2"]):
 
     ax = axs.flatten()[__]
 
-    filter = ["theta35112", "qrev1", upsil_filt]
+    filter = ["theta187", "qrev1", upsil_filt]
     exclude = [
                 # "qsd0.2"
+                "theta1_"
                 ]
 
     sub_files = [f for f in list_of_files if all(filt.lower() in f.lower() for filt in filter) and not any(excl.lower() in f.lower() for excl in exclude)]

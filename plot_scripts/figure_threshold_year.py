@@ -77,7 +77,7 @@ for m, run_model in enumerate(models):
         R2 = fit_result["R2"]
         
         YT = dat.YEAR_THRESHOLD.unique()[0]
-        label = f"YT: {YT}"
+        label = f"TY: {YT}"
 
         _analysis_utils.plot_curve_fit( ax, x, y, _curve_fit.mod_gompertz, fit_params, R2, run_model,
                                         color =  (YT - 1) / 250,
@@ -162,7 +162,7 @@ for m, run_model in enumerate(models):
     ax.set_xlabel("K")
     ax.set_ylabel("P(E)")
 
-    ax3.set_xlabel("Year Threshold")
+    ax3.set_xlabel("Year Threshold TY")
     ax3.set_ylabel("R$^2$")
 
     
@@ -174,8 +174,8 @@ fig.tight_layout()
 # fig2.tight_layout()
 fig3.tight_layout()
 
-fig.savefig(figs_dir / "tte_PE_vs_K_varYT.png", dpi=300)
+fig.savefig(figs_dir / "tte_PE_vs_K_varTY.png", dpi=300)
 # fig2.savefig(figs_dir / "tte_kX_vs_YT.png", dpi=300)
-fig3.savefig(figs_dir / "R2_vs_YT.png", dpi=300)
+fig3.savefig(figs_dir / "R2_vs_TY.png", dpi=300)
 
 plt.show()
