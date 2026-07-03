@@ -77,7 +77,7 @@ for m, run_model in enumerate(models):
         R2 = fit_result["R2"]
         
         YT = dat.YEAR_THRESHOLD.unique()[0]
-        label = f"TY: {YT}"
+        label = f"TH: {YT}"
 
         _analysis_utils.plot_curve_fit( ax, x, y, _curve_fit.mod_gompertz, fit_params, R2, run_model,
                                         color =  (YT - 1) / 250,
@@ -162,7 +162,7 @@ for m, run_model in enumerate(models):
     ax.set_xlabel("K")
     ax.set_ylabel("P(E)")
 
-    ax3.set_xlabel("Year Threshold TY")
+    ax3.set_xlabel("Time horizon TH (Years)")
     ax3.set_ylabel("R$^2$")
 
     
