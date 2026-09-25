@@ -64,13 +64,14 @@ def process_simulation_file(file, data_fits_path, existing_runs,
     
     ddf = pd.DataFrame()
     ddf.loc[0, ["model", "runName", "RMAX", "QSD", "QREV", "B", "SA", 
-                "model_name", *param_names, "R2", "RSD", "RMSE", "MAX_Y", 
+                "model_name", *param_names, "alpha_ci_025", "alpha_ci_975", "R2", "RSD", "RMSE", "MAX_Y", 
                 *kX_names, "dPdK_tp"]] = [
         run_params['model'], run_params['runName'], run_params['rmax'], 
         run_params['qsd'], run_params['qrev'], run_params['b'], run_params['sa'],
-        fit_result['model_name'], *params, R2, fit_result['rsd'], 
+        fit_result['model_name'], *params, *fit_result['alpha_ci'], R2, fit_result['rsd'], 
         fit_result['rmse'], run_params['max_p'], 
-        *[metrics[name] for name in kX_names], metrics['dPdK_tp']
+        *[metrics[name] for name in kX_names], metrics['dPdK_tp'],
+        
     ]
     
     # Plotting

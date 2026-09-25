@@ -66,7 +66,7 @@ for fi, file in enumerate(f):
                                 plot_lins=False)
     if not fit and not ret == None:
         fit = True
-        params, y_predicted, R2, resids = ret
+        params, y_predicted, R2, resids, _ = ret
         model_name = func.__name__
     
     
@@ -107,7 +107,7 @@ for fi, file in enumerate(f):
     
     
     func4 = _curve_fit.basic_gomp
-    params4, y_predicted4, R2_4, residuals_4 = _curve_fit.fit(func4, xx, yy)
+    params4, y_predicted4, R2_4, residuals_4, _ = _curve_fit.fit(func4, xx, yy)
     label = f"Standard gompertz  (R2:{round(R2_4, nnnn(R2_4)+1)})"
     ax.plot(xff, 1 - func4(xff, *params4), color = "m", label = label, **kwargs)
     

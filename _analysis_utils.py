@@ -63,6 +63,7 @@ def fit_gompertz_curve(x, y, alpha_space=np.arange(0, 5, 0.001), ylim=(0.0001, 0
         - model_name: name of the fitted model
         - rsd: residual standard deviation
         - rmse: root mean squared error
+        - covariance: covariance matrix of the fitted parameters
     """
     func = _curve_fit.mod_gompertz
     param_names = ("param_a", "param_b", "param_alpha")
@@ -99,10 +100,12 @@ def fit_gompertz_curve(x, y, alpha_space=np.arange(0, 5, 0.001), ylim=(0.0001, 0
             'resids': np.nan,
             'model_name': np.nan,
             'rsd': np.nan,
-            'rmse': np.nan
+            'rmse': np.nan,
+            'covariance': np.nan,
+            'alpha_ci': (np.nan, np.nan)
         }
     
-    params, y_predicted, R2, resids = ret
+    params, y_predicted, R2, resids, covariance = ret
     
     # Calculate error metrics
     rsd = np.sqrt(np.sum(resids ** 2) / len(resids))
@@ -115,7 +118,9 @@ def fit_gompertz_curve(x, y, alpha_space=np.arange(0, 5, 0.001), ylim=(0.0001, 0
         'resids': resids,
         'model_name': func.__name__,
         'rsd': rsd,
-        'rmse': rmse
+        'rmse': rmse,
+        'covariance': covariance,
+        'alpha_ci': _curve_fit.alpha_ci(params, covariance, len(resids))
     }
 
 

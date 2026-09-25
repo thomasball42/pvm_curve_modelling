@@ -100,7 +100,7 @@ for i, file in enumerate(f[:]):
                                 plot_lins=False)
     if not fit and not ret == None:
         fit = True
-        params, y_predicted, R2, resids = ret
+        params, y_predicted, R2, resids, _ = ret
         model_name = func.__name__
            
 

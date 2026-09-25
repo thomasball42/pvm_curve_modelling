@@ -63,7 +63,7 @@ def process_simulation_file(file, existing_runs,
         ret = None
 
     if ret is not None:
-        params, y_predicted, R2, resids = ret
+        params, y_predicted, R2, resids, _ = ret
         model_name = FUNC.__name__
         rsd  = np.sqrt(np.sum(resids ** 2) / len(resids))
         rmse = np.sqrt(np.sum(resids ** 2) / (len(resids) - len(params) + 1))

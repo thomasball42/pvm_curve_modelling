@@ -109,7 +109,7 @@ def plot_one_file(ax, filepath, i):
 
     if (not fit) and (ret is not None):
         fit = True
-        params, y_predicted, R2, resids = ret
+        params, y_predicted, R2, resids, _ = ret
         model_name = func.__name__
 
     dat_offset = 0
@@ -146,7 +146,7 @@ def plot_one_file(ax, filepath, i):
 
     # Standard gompertz
     try:
-        params_g, y_predicted_g, R2_g, residuals_g = _curve_fit.fit(
+        params_g, y_predicted_g, R2_g, residuals_g, _ = _curve_fit.fit(
             gompertz, x, y, init_guess=[1, 0.5, 0.01]
         )
         label = f"Std Gompertz (R²:{round(R2_g, n_decimals_for_r2(R2_g))})"
@@ -165,7 +165,7 @@ def plot_one_file(ax, filepath, i):
     # Logistic
     try:
         func2 = _curve_fit.logistic
-        params2, y_predicted2, R2_2, residuals_2 = _curve_fit.fit(
+        params2, y_predicted2, R2_2, residuals_2, _ = _curve_fit.fit(
             func2, x, y, init_guess=[1, 0.5, 200]
         )
         label = f"Logistic (R²:{round(R2_2, n_decimals_for_r2(R2_2))})"
@@ -179,7 +179,7 @@ def plot_one_file(ax, filepath, i):
         stop = max(start + 5, len(xx) - 1)
         x_fit_pw, y_fit_pw = xx[start:stop], yy.iloc[start:stop]
 
-        params3, y_predicted3, R2_3, residuals_3 = _curve_fit.fit(
+        params3, y_predicted3, R2_3, residuals_3, _ = _curve_fit.fit(
             powerX2, x_fit_pw, y_fit_pw, init_guess=[20, 0.26]
         )
 
@@ -210,7 +210,7 @@ def plot_one_file(ax, filepath, i):
         stop = max(start + 5, len(xx) - 1)
         x_fit_l, y_fit_l = xx[start:stop], yy.iloc[start:stop]
 
-        params5, y_predicted5, R2_5, residuals_5 = _curve_fit.fit(
+        params5, y_predicted5, R2_5, residuals_5, _ = _curve_fit.fit(
             lande, x_fit_l, y_fit_l, init_guess=[10, rmax, qsd]
         )
         label = f"Lande (R²:{round(R2_5, n_decimals_for_r2(R2_5))})"

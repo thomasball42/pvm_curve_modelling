@@ -29,7 +29,13 @@ def fit(curve_func, dat_x, dat_y, **kwargs):
     residuals = dat_y - y_predicted
     RSS = np.sum((dat_y - np.mean(dat_y))**2)
     R2 = 1 - (np.sum(residuals**2) / RSS)
-    return params, y_predicted, R2, residuals
+    return params, y_predicted, R2, residuals, covariance
+
+def alpha_ci(params, covariance, n):
+    se = np.sqrt(covariance[2, 2])
+    dof = n - len(params)
+    return (params[2] + scipy.stats.t.ppf(0.025, dof) * se,
+            params[2] + scipy.stats.t.ppf(0.975, dof) * se)
 
 def basic_gomp(x, a, b):
     return np.exp(-np.exp(a + b*(x)))

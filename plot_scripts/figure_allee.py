@@ -99,6 +99,7 @@ for p, param in enumerate(params):
         func = _curve_fit.mod_gompertz
         param_names = ("param_a", "param_b", "param_alpha")
         params = tuple([np.nan for _ in param_names])
+        alpha_ci = (np.nan, np.nan)
         ret = _curve_fit.betterfit_gompertz(func, x, y, 
                                 alpha_space = np.arange(0, 5, 0.001), 
                                 ylim=(0.05, 0.95), 
@@ -110,7 +111,8 @@ for p, param in enumerate(params):
                                     plot_lins=False)
         if not fit and not ret == None:
             fit = True
-            params, y_predicted, R2, resids = ret
+            params, y_predicted, R2, resids, covariance = ret
+            alpha_ci = _curve_fit.alpha_ci(params, covariance, len(resids))
             model_name = func.__name__
         
         
@@ -181,9 +183,9 @@ for p, param in enumerate(params):
             ax.set_xlabel("Carrying capacity K")
             
         ddf.loc[len(ddf), ["model", "runName", "RMAX", "QSD", "QREV", "B", "SA", 
-                            "model_name", *param_names, "R2", "RSD", "MAX_Y", *kX_names, "dPdK_tp"]] = [
-                            model, runName, rmax, qsd, qrev, B, sa, 
-                            model_name, *params, R2, rsd, max_y, *kX_vals, dPdK_max]
+                            "model_name", *param_names, "alpha_ci_5", "alpha_ci_95", "R2", "RSD", "MAX_Y", *kX_names, "dPdK_tp"]] = [
+                            model, runName, rmax, qsd, qrev, B, sa,
+                            model_name, *params, *alpha_ci, R2, rsd, max_y, *kX_vals, dPdK_max]
         data_fits = pd.concat([data_fits, ddf])
         data_fits.to_csv(data_fits_path)                        
                                 

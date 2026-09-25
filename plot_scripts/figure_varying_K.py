@@ -105,12 +105,12 @@ for m, run_model in enumerate(models):
         ddf = pd.DataFrame()
         ddf.loc[0, ["model", "runName", "RMAX", "QSD", "QREV", "B", "SA", 
                     "year_threshold",
-                    "model_name", *param_names, "R2", "RSD", "RMSE", "MAX_Y", 
+                    "model_name", *param_names, "alpha_ci_5", "alpha_ci_95", "R2", "RSD", "RMSE", "MAX_Y", 
                     *kX_names, "dPdK_tp"]] = [
             run_params['model'], run_params['runName'], run_params['rmax'], 
             run_params['qsd'], run_params['qrev'], run_params['b'], run_params['sa'],
             run_params['year_threshold'],
-            fit_result['model_name'], *fit_params, R2, fit_result['rsd'], 
+            fit_result['model_name'], *fit_params, *fit_result['alpha_ci'], R2, fit_result['rsd'], 
             fit_result['rmse'], max_y, 
             *[metrics[name] for name in kX_names], metrics['dPdK_tp']
         ]
