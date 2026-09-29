@@ -11,7 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib
 import os
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "k10"
 
 results_path = "..\\results\\data_fits"
 
@@ -110,3 +116,4 @@ fig.text(0.005, 0.52, '$K_{10}$', va='center', rotation='vertical')
 
 fig.set_size_inches(8, 4.3)
 fig.tight_layout()
+save_figure(fig, "k10", subdir=FIG_SUBDIR)

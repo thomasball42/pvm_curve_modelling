@@ -11,9 +11,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from other_scripts import process_mammal_data
 import _curve_fit
 import _analysis_utils
+from _figure_io import save_figure
 
 data_fits_path = Path("..", "results", "data_fits", "data_fits_main")
-figs_dir = Path("..", "figs", "figs_stand_vs_mod_gompertz")
+FIG_SUBDIR = "stand_vs_mod_gompertz"
 models = ["A", 
           "B", 
           "C", 
@@ -82,8 +83,7 @@ files = data_fits_path.glob("*.csv")
 #     ax.legend(handles=legend_patch, fontsize=10)
 
 # fig.tight_layout()
-# figs_dir.mkdir(parents=True, exist_ok=True)
-# fig.savefig(figs_dir / f"standard_vs_mod_gompertz_PE.png", dpi=300)
+# save_figure(fig, "standard_vs_mod_gompertz_PE", subdir=FIG_SUBDIR)
 # plt.show()
 
 # ── Second figure: % difference vs normalised x (clipped to y in (0,1)) ──────
@@ -160,7 +160,7 @@ for m, model in enumerate(models):
     ax.legend(handles=legend_patch, fontsize=10)
 
 fig2.tight_layout()
-fig2.savefig(figs_dir / "gross_standard_vs_mod_gompertz_PE_norm_K.png", dpi=300)
+save_figure(fig2, "gross_standard_vs_mod_gompertz_PE_norm_K", subdir=FIG_SUBDIR)
 plt.show()
 
 fig2, axs2 = plt.subplots(2, 2, figsize=(8, 6),
@@ -236,5 +236,5 @@ for m, model in enumerate(models):
     ax.legend(handles=legend_patch, fontsize=10)
 
 fig2.tight_layout()
-fig2.savefig(figs_dir / "standard_vs_mod_gompertz_PE_norm_K.png", dpi=300)
+save_figure(fig2, "standard_vs_mod_gompertz_PE_norm_K", subdir=FIG_SUBDIR)
 plt.show()

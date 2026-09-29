@@ -7,10 +7,11 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
+from _figure_io import save_figure
 # import _curve_fit
 
 data_path = Path("..\\results\\simulation_results\\results_N_L_2005")
-figs_dir = Path("..", "figs", "figs_NielLebreton_examples")
+FIG_SUBDIR = "NielLebreton_examples"
 
 bird_demo_df = pd.read_csv(Path("manuscript_inputs", "niel_lebreton2005_bird_demographics.csv"))
 bird_growth_df = pd.read_csv(Path("manuscript_inputs", "niel_lebreton2005_bird_growth_rates.csv"))
@@ -75,6 +76,5 @@ for ax in axs.flatten()[num_sp:]:
     ax.set_visible(False)
 
 fig.tight_layout()
-figs_dir.mkdir(parents=True, exist_ok=True)
-fig.savefig(figs_dir / f"niel_lebreton_examples.png", dpi=300)
+save_figure(fig, "niel_lebreton_examples", subdir=FIG_SUBDIR)
 plt.show()

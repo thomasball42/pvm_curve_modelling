@@ -14,6 +14,12 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from _figure_io import save_figure
+
+FIG_SUBDIR = "gamma_dist"
+
 # dir that the simulation outputs are in
 dat_fits_path = "..\\results\\data_fits"
 
@@ -54,3 +60,4 @@ axs.set_xticks(np.arange(len(models)), labels = [f"Model_{x}" for x in models])
 axs.axhline(1, linestyle = "--", color = "k", alpha = 0.5)
 axs.set_ylabel("Gamma parameter")
 fig.tight_layout()
+save_figure(fig, "gamma_dist", subdir=FIG_SUBDIR)

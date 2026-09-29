@@ -11,6 +11,7 @@ from scipy import stats
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
 import _analysis_utils
+from _figure_io import save_figure
 
 OVERWRITE = True
 FIGSIZE = (8, 5)
@@ -18,7 +19,7 @@ FIGSIZE = (8, 5)
 ### time to extinction vs K
 DATA_FITS_PATH = Path("..", "results", "data_fits", "data_fits_threshold_year")
 
-figs_dir = Path("..", "figs", "figs_threshold_year")
+FIG_SUBDIR = "threshold_year"
 data_path = Path("..", "results", "simulation_results", "results_threshold_year")
 
 list_of_files = []
@@ -168,14 +169,12 @@ for m, run_model in enumerate(models):
     
 ax3.legend(fontsize=11)
 
-figs_dir.mkdir(parents=True, exist_ok=True)
-
 fig.tight_layout()
 # fig2.tight_layout()
 fig3.tight_layout()
 
-fig.savefig(figs_dir / "tte_PE_vs_K_varTY.png", dpi=300)
-# fig2.savefig(figs_dir / "tte_kX_vs_YT.png", dpi=300)
-fig3.savefig(figs_dir / "R2_vs_TY.png", dpi=300)
+save_figure(fig, "tte_PE_vs_K_varTY", subdir=FIG_SUBDIR)
+# save_figure(fig2, "tte_kX_vs_YT", subdir=FIG_SUBDIR)
+save_figure(fig3, "R2_vs_TY", subdir=FIG_SUBDIR)
 
 plt.show()

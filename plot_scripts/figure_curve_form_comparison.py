@@ -20,6 +20,9 @@ import matplotlib
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils  # noqa: F401
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "curve_form_comparison"
 
 
 # dir that the simulation outputs are in
@@ -158,6 +161,8 @@ def plot_one_file(ax, filepath, i):
     if ret is not None:
         try:
             label = f"Mod Gompertz (R²:{round(R2, n_decimals_for_r2(R2))})"
+            print(params)
+            
             ax.plot(xff, 1 - func(xff, *params), color=line_colors["mod_gompertz"], label=label, **kwargs)
         except Exception:
             pass
@@ -271,4 +276,5 @@ for j in range(n_files, len(axes_flat)):
     axes_flat[j].axis("off")
 
 fig.tight_layout()
+save_figure(fig, "curve_form_comparison", subdir=FIG_SUBDIR)
 plt.show()

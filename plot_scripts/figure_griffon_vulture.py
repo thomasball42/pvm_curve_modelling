@@ -10,9 +10,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 import _curve_fit
+from _figure_io import save_figure
 
 data_path = Path("..\\results\\simulation_results\\results_griffon_vulture")
-figs_dir = Path("..", "figs", "figs_griffon_vulture")
+FIG_SUBDIR = "griffon_vulture"
 
 list_of_files = []
 for path, subdirs, files in os.walk(data_path):
@@ -99,6 +100,5 @@ for __, upsil_filt in enumerate(["upsil0.0", "upsil0.1", "upsil0.2"]):
     ax.set_title(f"$\\upsilon$={upsil}")
     
 fig.tight_layout()
-figs_dir.mkdir(parents=True, exist_ok=True)
-fig.savefig(figs_dir / "griffon_vulture_P_curves.png", dpi=300)
+save_figure(fig, "griffon_vulture_P_curves", subdir=FIG_SUBDIR)
 plt.show()

@@ -7,14 +7,18 @@ Created on Tue Mar 25 13:42:56 2025
 
 import pandas as pd
 import numpy as np
-import os 
+import os
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
-sys.path.append("..")
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "allee"
 
 params = ["theta", "upsil"]
 together = False
@@ -28,7 +32,8 @@ for p, param in enumerate(params):
     dat_path = f"..\\results\\simulation_results\\results_ALLEE_{param}"
 
     # path to output fitted data
-    data_fits_path = f"..\\results\\data_fits\\data_fits_ALLEE_{param}.csv"
+    data_fits_path = f"..\\results\\data_fits\\data_fits_allee\\data_fits_ALLEE_{param}.csv"
+    os.makedirs(Path(data_fits_path).parent, exist_ok=True)
     
     if together:
         ax = axs[p]
@@ -158,8 +163,8 @@ for p, param in enumerate(params):
             c = "m"
             marker = "o"
         else:
-            c = matplotlib.cm.get_cmap('viridis')(i/(len(f)-1))
-            # c = matplotlib.cm.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
+            c = plt.get_cmap('viridis')(i/(len(f)-1))
+            # c = plt.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
             marker = "o"
             
         # label = f"{runName}_(R2:{round(R2, nnnn+1)})"
@@ -192,4 +197,9 @@ for p, param in enumerate(params):
         ax.legend()
     fig.set_size_inches(8, 5.5)
     fig.tight_layout()
+    if not together:
+        save_figure(fig, f"allee_{param}", subdir=FIG_SUBDIR)
+
+if together:
+    save_figure(fig, "allee", subdir=FIG_SUBDIR)
                 

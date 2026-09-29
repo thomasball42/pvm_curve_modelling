@@ -12,9 +12,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 import _curve_fit
+from _figure_io import save_figure
 
 data_path = Path("..\\results\\simulation_results\\results_main")
-figs_dir = Path("..", "figs", "figs_uncertainty")
+FIG_SUBDIR = "uncertainty"
 
 list_of_files = []
 for path, subdirs, files in os.walk(data_path):
@@ -102,9 +103,8 @@ ax.legend()
 ax.set_ylabel("Probability of extinction P(E) (n = 10000)")
 ax.set_xlabel("Carrying Capacity K")
 
-figs_dir.mkdir(parents=True, exist_ok=True)
 fig.tight_layout()
-fig.savefig(figs_dir / f"uncertainty_examples.png", dpi=300)
+save_figure(fig, "uncertainty_examples", subdir=FIG_SUBDIR)
 
 # fig 2
 
@@ -176,8 +176,7 @@ for m, model in enumerate(models):
         ]
     ax.legend(handles=legend_patch, fontsize=10)
 
-figs_dir.mkdir(parents=True, exist_ok=True)
 fig.tight_layout()
-fig.savefig(figs_dir / f"uncertainty_percentage_distribution.png", dpi=300)
+save_figure(fig, "uncertainty_percentage_distribution", subdir=FIG_SUBDIR)
 
 # plt.show()

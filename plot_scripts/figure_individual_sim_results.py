@@ -9,9 +9,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 import _curve_fit
+from _figure_io import save_figure
 
 data_path = Path("..\\results\\simulation_results\\individual_simulation_examples")
-figs_dir = Path("..", "figs", "individual_simulation_examples")
+FIG_SUBDIR = "individual_simulation_examples"
 data_fits_path = Path("..", "results", "data_fits", "data_fits_individual_sims")
 
 list_of_files = []
@@ -66,7 +67,6 @@ ax.set_ylabel("P(extinction) (N = 500)")
 
 fig.tight_layout()
 
-figs_dir.mkdir(parents=True, exist_ok=True)
-fig.savefig(figs_dir / f"individual_simulation_example.png", dpi=300)
+save_figure(fig, "individual_simulation_example", subdir=FIG_SUBDIR)
 
 plt.show()

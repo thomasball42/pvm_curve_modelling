@@ -24,7 +24,7 @@ OVERWRITE = False
 
 # Paths
 RESULTS_PATH = "..\\results\\simulation_results\\results_main"
-DATA_FITS_PATH = "..\\results\\data_fits\\data_fits_main"
+DATA_FITS_PATH = "..\\results\\data_fits\\data_fits_main_260929"
 MODELS = ["A", "B", "C", "D"]
 
 

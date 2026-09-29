@@ -9,12 +9,16 @@ import pandas as pd
 import numpy as np
 import os 
 import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
-sys.path.append("..")
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "stand_vs_mod_gompertz"
 
 clip_x = False
 
@@ -73,7 +77,7 @@ for fi, file in enumerate(f):
     # find the first non 0 y. 
     dat_offset = 5
     do2 = 5
-    c = matplotlib.cm.get_cmap('viridis')
+    c = plt.get_cmap('viridis')
     
     kwargs = {"linewidth" : 3, 
               "alpha" : 0.99,
@@ -128,3 +132,4 @@ fig.text(0.5, 0, "Carrying capacity K", ha= "center",va = "bottom")
 axs[0].set_ylabel(f"Probability of extinction (N={round(N)})")    
 fig.set_size_inches(10, 5)
 fig.tight_layout()
+save_figure(fig, "standard_vs_mod_gompertz_r2", subdir=FIG_SUBDIR)

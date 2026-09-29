@@ -14,10 +14,14 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 
 import sys
-sys.path.append("..")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
 
 plot_curves = True
+FIG_SUBDIR = "nonK"
+
 
 fig, axs = plt.subplots(1, 2)
 
@@ -28,7 +32,8 @@ for r, rpath in enumerate(["results_propN0",
     ax = axs[r]
         
     results_path = f"..\\results\\simulation_results\\{rpath}"
-    data_fits_path = f"..\\results\\data_fits\\data_fits_{rpath.split('_')[-1]}.csv"
+    os.makedirs(os.path.join("..", "results", "data_fits", "data_fits_nonK"), exist_ok=True)
+    data_fits_path = f"..\\results\\data_fits\\data_fits_nonK\\data_fits_{rpath.split('_')[-1]}.csv"
     
     # =============================================================================
     # Load data
@@ -42,17 +47,14 @@ for r, rpath in enumerate(["results_propN0",
     if r == 1:
         f = sorted(f, key=lambda x: float(x.split('N0')[-1].split('.csv')[0]))
 
+    # start fresh each run so re-running overwrites rather than appends
+    ddf = pd.DataFrame()
+
     for i, file in enumerate(f[:]):
-            
+
         dat = pd.read_csv(file)
         runName = dat.runName.unique().item()
-        
-        ## SETUP
-        if os.path.isfile(data_fits_path):
-            ddf = pd.read_csv(data_fits_path, index_col=0)
-        else:
-            ddf = pd.DataFrame()
-    
+
         model = runName.split("_")[0]
         qsd = dat.QSD.unique().item()
         N = dat.N.unique().item()
@@ -160,10 +162,10 @@ for r, rpath in enumerate(["results_propN0",
                 c = "m"
                 marker = "o"
             else:
-                c = matplotlib.cm.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
+                c = plt.get_cmap('viridis')((R2 - 0.990)/(1-0.990))
                 marker = "o"
      
-            c = matplotlib.cm.get_cmap("viridis")((i+0.9)/(len(f)))
+            c = plt.get_cmap("viridis")((i+0.9)/(len(f)))
             
             mod = model.strip("LogGrowth").strip("2")
             
@@ -187,7 +189,10 @@ for r, rpath in enumerate(["results_propN0",
                     # sn = f"$10^{int(math.log10(abs(val)))}$"
                     # label = f"$N_0$={sn}; $r^2$: {round(R2, nnnn+1)}"
                     label = f"$N_0$=$2^{{{int(np.log2(val))}}}$"
-                
+
+            # label += f"; $\\alpha$={params[-1]:.2f} [{alpha_ci[0]:.2f}, {alpha_ci[1]:.2f}]"
+            label += f"; $\\alpha$={params[-1]:.3f}"
+
             ax.scatter(x, 1 - y, color=c, alpha = 0.9, marker = marker, label = label)
             xff = np.geomspace(x.min(), x.max(), num = 100000)
             scatter_color = ax.collections[-1].get_facecolor()
@@ -200,7 +205,7 @@ for r, rpath in enumerate(["results_propN0",
                 return f'$10^{{{int(np.log10(x))}}}$'
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
     
-    ax.legend(fontsize=9)
+    ax.legend(fontsize=7)
 
 if clip_x:
     axs[0].set_xlim(1E1, 0.2E3)
@@ -214,5 +219,6 @@ fig.text(0.45, 0.019, 'Carrying capacity $K$', va='center', rotation='horizontal
 fig.set_size_inches(8, 4.3)
 fig.tight_layout()
 
-
+fig.show()
+save_figure(fig, "figure_nonK", subdir=FIG_SUBDIR)
 

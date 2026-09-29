@@ -9,6 +9,7 @@ import re
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
 import _analysis_utils
+from _figure_io import save_figure
 
 OVERWRITE = True
 FIGSIZE = (6, 8)
@@ -16,7 +17,7 @@ FIGSIZE = (6, 8)
 ### varying K
 DATA_FITS_PATH = Path("..", "results", "data_fits", "data_fits_varying_K")
 
-figs_dir = Path("..", "figs", "figs_varying_K")
+FIG_SUBDIR = "varying_K"
 data_path = Path("..", "results", "simulation_results", "results_varying_K")
 
 list_of_files = []
@@ -130,8 +131,7 @@ for m, run_model in enumerate(models):
 ax.set_xlabel("Initial K")
 
 
-figs_dir.mkdir(parents=True, exist_ok=True)
 fig.tight_layout()
-fig.savefig(figs_dir / f"PE_vs_K_varying_K.png", dpi=300)
+save_figure(fig, "PE_vs_K_varying_K", subdir=FIG_SUBDIR)
 plt.show()
 

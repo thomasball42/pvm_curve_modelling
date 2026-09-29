@@ -12,7 +12,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "curves"
 
 scale_1_0 = False
 plot_pspace = False
@@ -164,7 +170,7 @@ for i, file in enumerate(f[:]):
                "LogGrowthD2":0.95}
         
         
-        c = matplotlib.cm.get_cmap("viridis")(mmm[model])
+        c = plt.get_cmap("viridis")(mmm[model])
         
         mod = model.strip("LogGrowth").strip("2")
         
@@ -199,6 +205,7 @@ if plot_pspace:
 ax.legend(fontsize = 9)
 fig.set_size_inches(8, 4)
 fig.tight_layout()
+save_figure(fig, "curves", subdir=FIG_SUBDIR)
 
 
 

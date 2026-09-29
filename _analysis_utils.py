@@ -202,14 +202,14 @@ def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False, alpha =
             c = "r"
             marker = "x"
         else:
-            c = plt.cm.get_cmap('viridis')((R2 - 0.990) / (1 - 0.990))
+            c = plt.get_cmap('viridis')((R2 - 0.990) / (1 - 0.990))
             marker = "o"
 
     if isinstance(color, str) and len(color) == 1:
         c = color
 
     if isinstance(color, float):
-        c = plt.cm.get_cmap(colormap)(color)
+        c = plt.get_cmap(colormap)(color)
 
 
     if marker is None: # default behaviour
@@ -245,7 +245,7 @@ def plot_parameter_space(ax, qsd, rmax, R2, params):
         c = "m"
         marker = "o"
     else:
-        c = plt.cm.get_cmap('viridis')((R2 - 0.90) / (1 - 0.90))
+        c = plt.get_cmap('viridis')((R2 - 0.90) / (1 - 0.90))
         marker = "o"
     
     ax.scatter(qsd, rmax, color=c, s=70, marker=marker)

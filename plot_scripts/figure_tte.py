@@ -12,6 +12,7 @@ from scipy.optimize import curve_fit
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
 import _analysis_utils
+from _figure_io import save_figure
 
 OVERWRITE = True
 FIGSIZE = (8, 5)
@@ -29,7 +30,7 @@ FIT_LABEL = r"$c \cdot x^a$"  # shown in panel titles
 ### time to extinction vs K
 DATA_FITS_PATH = Path("..", "results", "data_fits", "data_fits_tte")
 
-figs_dir = Path("..", "figs", "figs_tte")
+FIG_SUBDIR = "tte"
 data_path = Path("..", "results", "simulation_results", "results_tte")
 
 list_of_files = []
@@ -164,7 +165,6 @@ for m, run_model in enumerate(models):
 
 fig.supylabel(f"Mean time to extinction (Years, n={N})")
 
-figs_dir.mkdir(parents=True, exist_ok=True)
 fig.tight_layout()
-fig.savefig(figs_dir / "K_vs_TTE.png", dpi=300)
+save_figure(fig, "K_vs_TTE", subdir=FIG_SUBDIR)
 plt.show()

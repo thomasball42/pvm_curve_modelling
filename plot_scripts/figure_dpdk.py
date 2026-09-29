@@ -11,7 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib
 import os
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "dpdk"
 
 results_path = "..\\results\\data_fits"
 
@@ -111,3 +117,4 @@ fig.text(0.01, 0.5, '$P_{inflect}$', va='center', rotation='vertical')
 
 fig.set_size_inches(8, 5.5)
 fig.tight_layout()
+save_figure(fig, "dpdk", subdir=FIG_SUBDIR)

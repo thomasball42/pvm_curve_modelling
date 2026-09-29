@@ -10,7 +10,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import os
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
+from _figure_io import save_figure
+
+FIG_SUBDIR = "param_space"
 
 import scipy.stats
 from scipy.stats import gaussian_kde as kde
@@ -67,9 +73,9 @@ for i, I in enumerate(["A", "B"]):
             
             xg, yg, zg = interpolateZ(x, y, z, density)
             
-            ax.scatter(x, y, z, alpha=0.9, s=30, c = matplotlib.cm.get_cmap('viridis')(0.3) )
+            ax.scatter(x, y, z, alpha=0.9, s=30, c = plt.get_cmap('viridis')(0.3) )
             ax.set_title(f"Param {ipl[mp]}")
-            ax.plot_surface(xg, yg, zg, alpha=0.5, cmap = matplotlib.cm.get_cmap('viridis'))
+            ax.plot_surface(xg, yg, zg, alpha=0.5, cmap = plt.get_cmap('viridis'))
             ax.set_xlabel(ipl[input_params.columns[0]])
             ax.set_ylabel(ipl[input_params.columns[1]])
             ax.set_zlabel(ipl[mp])
@@ -80,5 +86,6 @@ fig.text(0.01, 0.40, "b", size = 17, va='center', rotation='horizontal')
 fig.set_size_inches(8, 6)
 # fig.suptitle(f"Model '{model}'", fontsize=14)
 fig.tight_layout(pad = 2.12)
+save_figure(fig, "param_space", subdir=FIG_SUBDIR)
 # plt.show()
     

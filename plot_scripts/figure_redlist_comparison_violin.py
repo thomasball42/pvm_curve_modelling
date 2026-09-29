@@ -9,10 +9,11 @@ from matplotlib.lines import Line2D
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from other_scripts import process_mammal_data
 import _curve_fit
+from _figure_io import save_figure
 
 
 model_names = ["model_A", "model_B", "model_C", "model_D"]
-figs_dir = Path("..", "figs", "figs_redlist_comparison")
+FIG_SUBDIR = "redlist_comparison"
 
 quants = [0, 0.25, 0.75, 1]
 COLOURS = {"CR": "#17DCE3", "EN": "#491EA7", "VU": "#D2E317"}
@@ -203,6 +204,5 @@ ax.legend(
 )
 
 fig.tight_layout()
-figs_dir.mkdir(parents=True, exist_ok=True)
-fig.savefig(figs_dir / "redlist_comparison_violin_vs_redlist.png", dpi=300, bbox_inches="tight")
+save_figure(fig, "redlist_comparison_violin_vs_redlist", subdir=FIG_SUBDIR, bbox_inches="tight")
 plt.show()
