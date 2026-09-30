@@ -20,13 +20,18 @@ import matplotlib
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils  # noqa: F401
 import _curve_fit
-from _figure_io import save_figure
+from _figure_io import (MAIN_FIG_MAX_WIDTH_IN, RESULTS_DIR, save_figure,
+                        use_main_fig_style)
 
 FIG_SUBDIR = "curve_form_comparison"
 
+# main-text figure: width is capped at 210 mm by save_figure()
+MAIN_FIG = True
+use_main_fig_style()
+
 
 # dir that the simulation outputs are in
-dat_path = "..\\results\\simulation_results\\results_curve_comparison"
+dat_path = RESULTS_DIR / "simulation_results" / "results_curve_comparison"
 
 # collect files
 f = []
@@ -241,9 +246,9 @@ def plot_one_file(ax, filepath, i):
     ax.set_ylim(-0.05, 1.05)
     ax.set_xlabel("Carrying capacity K")
     ax.set_ylabel(f"P(extinction) (N={round(N) if pd.notna(N) else 'NA'})" if i == 0 else None)
-    ax.set_title(title(model_name, rmax, qsd, sa, qrev), fontsize=10)
+    ax.set_title(title(model_name, rmax, qsd, sa, qrev))
 
-    ax.legend(fontsize=8, loc="best")
+    ax.legend(loc="best")
 
 
 n_files = len(f)
@@ -253,10 +258,16 @@ if n_files == 0:
 ncols = min(3, n_files)
 nrows = math.ceil(n_files / ncols)
 
+panel_w, panel_h = 4, 4.5
+fig_w, fig_h = panel_w * ncols, panel_h * nrows
+if MAIN_FIG and fig_w > MAIN_FIG_MAX_WIDTH_IN:
+    fig_h *= MAIN_FIG_MAX_WIDTH_IN / fig_w
+    fig_w = MAIN_FIG_MAX_WIDTH_IN
+
 fig, axes = plt.subplots(
     nrows=nrows,
     ncols=ncols,
-    figsize=(4 * ncols, 4.5 * nrows),
+    figsize=(fig_w, fig_h),
     sharex=False,
     squeeze=False
 )
@@ -276,5 +287,5 @@ for j in range(n_files, len(axes_flat)):
     axes_flat[j].axis("off")
 
 fig.tight_layout()
-save_figure(fig, "curve_form_comparison", subdir=FIG_SUBDIR)
+save_figure(fig, "curve_form_comparison", subdir=FIG_SUBDIR, main_fig=MAIN_FIG)
 plt.show()

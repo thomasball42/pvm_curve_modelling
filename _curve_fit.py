@@ -53,10 +53,10 @@ def mod_gompertz(x, a, b, c):
 def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
     try:
         dat_x, dat_y = np.array(dat_x), np.array(dat_y)
-        if "ylim" in kwargs.keys():
-            yl0,yl1 = kwargs["ylim"]
-        else:
-            yl0,yl1 = (0, 1)
+        # pop what this function consumes; anything left over goes to curve_fit
+        yl0, yl1 = kwargs.pop("ylim", (0, 1))
+        alpha_space = kwargs.pop("alpha_space", np.arange(0.1, 1.1, 0.1))
+        plot_lins = kwargs.pop("plot_lins", False)
         valid_indices = (dat_y > yl0) & (dat_y < yl1)
         x = dat_x[valid_indices]
         y = dat_y[valid_indices]
@@ -64,10 +64,6 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
             ret = None
         else:
             y_trans = np.log(-np.log(y))
-            if "alpha_space" in kwargs.keys():
-                alpha_space = kwargs["alpha_space"]
-            else:
-                alpha_space = np.arange(0.1, 1.1, 0.1)
             k_alpha_space = (x[:, np.newaxis] ** alpha_space.T).T
             maxr = -np.inf
             a, b, alpha = None, None, None
@@ -82,9 +78,10 @@ def betterfit_gompertz(curve_func, dat_x, dat_y, **kwargs):
             if a == None:
                 ret = None
             else:
-                ret = fit(curve_func, dat_x, dat_y, init_guess = [a, b, alpha])
+                ret = fit(curve_func, dat_x, dat_y, init_guess = [a, b, alpha],
+                          **kwargs)
 
-            if "plot_lins" in kwargs.keys() and kwargs["plot_lins"]:
+            if plot_lins:
                 if alpha < 0:
                     c = "g"
                 if alpha >= 0:

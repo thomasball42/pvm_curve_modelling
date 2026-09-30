@@ -16,31 +16,50 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
-from _figure_io import save_figure
+from _figure_io import save_figure, use_main_fig_style
 
 FIG_SUBDIR = "curves"
+
+# main-text figure: width is capped at 210 mm by save_figure()
+MAIN_FIG = True
+use_main_fig_style()
 
 scale_1_0 = False
 plot_pspace = False
 plot_curves = True
 
-results_path = "..\\results\\simulation_results\\results_main"
+SIM_RESULTS_DIR = Path(__file__).resolve().parents[2] / "results" / "simulation_results"
 
-sims_to_plot = [   
-     "LogGrowthA_QSD0.11_QREV1.0_RMAX0.158_SAnan_N00.csv",
-     "LogGrowthB_QSD0.11_QREV1.0_RMAX0.158_SAnan_N00.csv",
-     "LogGrowthC2_QSD0.11_QREVnan_RMAX0.158_SA0.35_N00.csv",
-     "LogGrowthD2_QSD0.11_QREV0.258_RMAX0.158_SA0.35_N00.csv",
+# Model A at these parameters only exists in the curve-comparison run; the other
+# three come from the main run, so both directories are searched.
+results_paths = [SIM_RESULTS_DIR / "results_main",
+                 SIM_RESULTS_DIR / "results_curve_comparison"]
+
+sims_to_plot = [
+     "LogGrowthA_QSD0.11_YT100_RMAX0.158.csv",
+     "LogGrowthB_QSD0.11_YT100_RMAX0.158.csv",
+     "LogGrowthC_QSD0.11_YT100_RMAX0.158_SA0.35.csv",
+     "LogGrowthD_QSD0.11_YT100_RMAX0.158_SA0.35_QREV0.258.csv",
     ]
 
 # =============================================================================
 # Find data
 # =============================================================================
-f = []
-for path, subdirs, files in os.walk(results_path):
-    for name in files:
-        f.append(os.path.join(path, name))
-f = [file for file in f if os.path.split(file)[-1] in sims_to_plot]
+found = {}
+for results_path in results_paths:
+    for path, subdirs, files in os.walk(results_path):
+        for name in files:
+            if name in sims_to_plot and name not in found:
+                found[name] = os.path.join(path, name)
+
+missing = [name for name in sims_to_plot if name not in found]
+if missing:
+    raise FileNotFoundError(
+        "Could not find these simulation results under "
+        + str([str(p) for p in results_paths]) + ": " + ", ".join(missing))
+
+# keep plotting/legend order fixed to sims_to_plot rather than os.walk order
+f = [found[name] for name in sims_to_plot]
 
 fig, ax = plt.subplots()
 
@@ -58,7 +77,7 @@ for i, file in enumerate(f[:]):
     
     try:
         qrev = dat.QREV.unique().item()
-        if not model == "LogGrowthD2":
+        if not model == "LogGrowthD":
             qrev = np.nan
     except AttributeError:
         qrev = np.nan
@@ -166,8 +185,8 @@ for i, file in enumerate(f[:]):
             marker = "o"
         mmm = {"LogGrowthA":0.05,
                "LogGrowthB":0.33,
-               "LogGrowthC2":0.66,
-               "LogGrowthD2":0.95}
+               "LogGrowthC":0.66,
+               "LogGrowthD":0.95}
         
         
         c = plt.get_cmap("viridis")(mmm[model])
@@ -202,10 +221,10 @@ if plot_pspace:
     cbar = plt.colorbar(sm, ax=ax)
     cbar.set_label('R2')
 
-ax.legend(fontsize = 9)
+ax.legend()
 fig.set_size_inches(8, 4)
 fig.tight_layout()
-save_figure(fig, "curves", subdir=FIG_SUBDIR)
+save_figure(fig, "curves", subdir=FIG_SUBDIR, main_fig=MAIN_FIG)
 
 
 

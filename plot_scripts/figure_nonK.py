@@ -17,10 +17,18 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _curve_fit
-from _figure_io import save_figure
+import _analysis_utils as utils
+from _figure_io import (AXIS_LABEL_SIZE, PANEL_LABEL_SIZE, RESULTS_DIR,
+                        save_figure, use_main_fig_style)
+
+SIM_RESULTS_DIR = RESULTS_DIR / "simulation_results"
 
 plot_curves = True
 FIG_SUBDIR = "nonK"
+
+# main-text figure: width is capped at 210 mm by save_figure()
+MAIN_FIG = True
+use_main_fig_style()
 
 
 fig, axs = plt.subplots(1, 2)
@@ -31,9 +39,10 @@ for r, rpath in enumerate(["results_propN0",
                            "results_fixedN0", ]):
     ax = axs[r]
         
-    results_path = f"..\\results\\simulation_results\\{rpath}"
-    os.makedirs(os.path.join("..", "results", "data_fits", "data_fits_nonK"), exist_ok=True)
-    data_fits_path = f"..\\results\\data_fits\\data_fits_nonK\\data_fits_{rpath.split('_')[-1]}.csv"
+    results_path = SIM_RESULTS_DIR / rpath
+    data_fits_dir = RESULTS_DIR / 'data_fits' / 'data_fits_nonK'
+    data_fits_dir.mkdir(parents=True, exist_ok=True)
+    data_fits_path = data_fits_dir / f"data_fits_{rpath.split('_')[-1]}.csv"
     
     # =============================================================================
     # Load data
@@ -79,32 +88,20 @@ for r, rpath in enumerate(["results_propN0",
         except AttributeError:
             sa = None
         
-        # initialise fitting
-        fit = False
-        model_name = np.nan
-        R2 = np.nan
-        resids = np.nan
-            
-        # TRY GOMPERTZ
+        # TRY GOMPERTZ - same fitter/settings as the main analysis
         func = _curve_fit.mod_gompertz
         param_names = ("param_a", "param_b", "param_alpha")
-        params = tuple([np.nan for _ in param_names])
-        alpha_ci = (np.nan, np.nan)
-        ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                alpha_space = np.arange(0, 5, 0.001), 
-                                ylim=(0.05, 0.95), 
-                                plot_lins=False,)
-        if ret == None:
-            ret = _curve_fit.betterfit_gompertz(func, x, y, 
-                                    alpha_space = np.arange(-3, 0, 0.001),
-                                    ylim=(0.05, 0.95), 
-                                    plot_lins=False)
-        if not fit and not ret == None:
-            fit = True
-            params, y_predicted, R2, resids, covariance = ret
-            alpha_ci = _curve_fit.alpha_ci(params, covariance, len(resids))
-            model_name = func.__name__
-            
+        # main-analysis fitter, but with the fitting window these data support
+        # and enough iterations for the large-N0 runs to converge
+        fit_result = utils.fit_gompertz_curve(x, y, ylim=(0.05, 0.95),
+                                             maxfev=100000)
+        params = fit_result["params"]
+        R2 = fit_result["R2"]
+        resids = fit_result["resids"]
+        rsd = fit_result["rsd"]
+        alpha_ci = fit_result["alpha_ci"]
+        model_name = fit_result["model_name"]
+
         # calc k50, rsd, dPdK_max
         xff = np.geomspace(dat.K.min(), dat.K.max(), num = 100000)
         yff = func(xff, *params)
@@ -131,11 +128,6 @@ for r, rpath in enumerate(["results_propN0",
             dPdK_max = xff[np.argmax(dPdK) + 1]
         else:
             dPdK_max = np.nan
-        
-        if not ret == None:
-            rsd = np.sqrt(np.sum(resids ** 2) / (len(resids) - 0))
-        else:
-            rsd = np.nan
         
         ddf.loc[len(ddf), ["model", "runName", "RMAX", "QSD", "QREV", "B", "SA", 
                             "model_name", *param_names, "alpha_ci_5", "alpha_ci_95", "R2", "RSD", "MAX_Y", *kX_names, "dPdK_tp"]] = [
@@ -191,7 +183,7 @@ for r, rpath in enumerate(["results_propN0",
                     label = f"$N_0$=$2^{{{int(np.log2(val))}}}$"
 
             # label += f"; $\\alpha$={params[-1]:.2f} [{alpha_ci[0]:.2f}, {alpha_ci[1]:.2f}]"
-            label += f"; $\\alpha$={params[-1]:.3f}"
+            label += f" [fitted $\\gamma$={params[-1]:.3f}]"
 
             ax.scatter(x, 1 - y, color=c, alpha = 0.9, marker = marker, label = label)
             xff = np.geomspace(x.min(), x.max(), num = 100000)
@@ -205,20 +197,23 @@ for r, rpath in enumerate(["results_propN0",
                 return f'$10^{{{int(np.log10(x))}}}$'
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(custom_formatter))
     
-    ax.legend(fontsize=7)
+    ax.legend()
 
 if clip_x:
     axs[0].set_xlim(1E1, 0.2E3)
     # axs[1].set_xlim(1E1, 0.2E3)
-axs[0].text(0.05, 0.95, "a", transform=axs[0].transAxes, ha='left', va='top', fontsize=12)
-axs[1].text(0.05, 0.95, "b", transform=axs[1].transAxes, ha='left', va='top', fontsize=12)
+axs[0].text(0.05, 0.95, "a", transform=axs[0].transAxes, ha='left', va='top',
+            fontsize=PANEL_LABEL_SIZE, fontweight="bold")
+axs[1].text(0.05, 0.95, "b", transform=axs[1].transAxes, ha='left', va='top',
+            fontsize=PANEL_LABEL_SIZE, fontweight="bold")
 axs[0].set_ylabel(f"Probability of extinction $P_E$")
 
-fig.text(0.45, 0.019, 'Carrying capacity $K$', va='center', rotation='horizontal')
+fig.text(0.45, 0.019, 'Carrying capacity $K$', va='center', rotation='horizontal',
+         fontsize=AXIS_LABEL_SIZE)
 
 fig.set_size_inches(8, 4.3)
 fig.tight_layout()
 
 fig.show()
-save_figure(fig, "figure_nonK", subdir=FIG_SUBDIR)
+save_figure(fig, "figure_nonK", subdir=FIG_SUBDIR, main_fig=MAIN_FIG)
 
