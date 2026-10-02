@@ -28,6 +28,8 @@ FONT_RC = {
     # keep text as editable TrueType in the vector outputs rather than Type 3
     "pdf.fonttype": 42,
     "ps.fonttype": 42,
+    # keep SVG text as text rather than outlined paths
+    "svg.fonttype": "none",
 }
 
 
@@ -93,7 +95,7 @@ def fit_main_fig_width(fig, max_width_mm=MAIN_FIG_MAX_WIDTH_MM, retighten=True):
     return fig
 
 
-def save_figure(fig, name, subdir=None, dpi=300, main_fig=False, **kwargs):
+def save_figure(fig, name, subdir=None, dpi=300, main_fig=False, svg=False, **kwargs):
     if main_fig:
         fit_main_fig_width(fig)
     stem = Path(name).stem
@@ -105,8 +107,12 @@ def save_figure(fig, name, subdir=None, dpi=300, main_fig=False, **kwargs):
     pdf_path = pdf_dir / f"{stem}.pdf"
     fig.savefig(png_path, dpi=dpi, **kwargs)
     fig.savefig(pdf_path, **kwargs)
+    if svg:
+        fig.savefig(pdf_dir / f"{stem}.svg", **kwargs)
     if main_fig:
         MAIN_FIG_DIR.mkdir(parents=True, exist_ok=True)
         fig.savefig(MAIN_FIG_DIR / f"{stem}.png", dpi=dpi, **kwargs)
         fig.savefig(MAIN_FIG_DIR / f"{stem}.pdf", **kwargs)
+        if svg:
+            fig.savefig(MAIN_FIG_DIR / f"{stem}.svg", **kwargs)
     return png_path, pdf_path

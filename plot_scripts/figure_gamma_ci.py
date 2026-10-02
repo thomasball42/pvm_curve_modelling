@@ -16,6 +16,7 @@ import matplotlib.ticker
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from _figure_io import save_figure
+import _overlay
 
 FIG_SUBDIR = "gamma_ci"
 
@@ -65,11 +66,15 @@ for body in vp["bodies"]:
 axs.boxplot([np.log10(d) for d in data], positions=positions, widths=0.15,
             showfliers=False, medianprops={"color": "k"})
 
+n_texts = {}
 for m, model_name in enumerate(model_names):
     med = np.median(ci_widths[model_name])
     axs.text(m + 0.12, np.log10(med), f"{med:.1f}%", ha="left", va="center", fontsize=9)
-    axs.text(m, 0.02, f"n={len(ci_widths[model_name])}", transform=axs.get_xaxis_transform(),
-             ha="center", va="bottom", fontsize=8, color="#555555")
+    # handle is kept so the "_wdots" pass can extend this label in place rather
+    # than adding a second one; the text written here is unchanged
+    n_texts[m] = axs.text(m, 0.02, f"n={len(ci_widths[model_name])}",
+                          transform=axs.get_xaxis_transform(),
+                          ha="center", va="bottom", fontsize=8, color="#555555")
 
 axs.axhline(np.log10(10), linestyle="--", color="k", alpha=0.5)
 
@@ -82,3 +87,16 @@ axs.set_ylabel(r"95% CI width as % of $\gamma$")
 fig.set_size_inches(6, 4.5)
 fig.tight_layout()
 save_figure(fig, "gamma_ci", subdir=FIG_SUBDIR)
+
+# --- "_wdots" variant: overlay the individual CI widths ---------------------
+# The violin and the box are both built from log10 of the data, so the overlaid
+# values have to be log10 too.  Violin widths are 0.7 on a linear position axis.
+# Do NOT call tight_layout() again -- the n= labels sit inside the axes.
+for m, model_name in enumerate(model_names):
+    _, n_tot, n_shown = _overlay.jittered_dots(
+        axs, m, np.log10(ci_widths[model_name]), width=0.7, glyph=m)
+    n_texts[m].set_text(_overlay.n_text(n_tot, n_shown))
+    n_texts[m].set_fontsize(7)
+    print(f"{model_name} : n={n_tot}, shown={n_shown}")
+
+save_figure(fig, "gamma_ci" + _overlay.SUFFIX, subdir=FIG_SUBDIR)

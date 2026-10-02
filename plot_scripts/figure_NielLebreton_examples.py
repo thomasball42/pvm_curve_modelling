@@ -8,6 +8,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 from _figure_io import save_figure
+import _overlay
 # import _curve_fit
 
 data_path = Path("..\\results\\simulation_results\\results_N_L_2005")
@@ -23,6 +24,8 @@ rows = int(np.ceil(num_sp / cols))
 fig, axs = plt.subplots(rows, cols, figsize=(8, 6),
                         # sharex=True, 
                         sharey=True)
+
+panels = {}
 
 for b, bird in enumerate(bird_demo_df.Species.unique()):
 
@@ -60,6 +63,10 @@ for b, bird in enumerate(bird_demo_df.Species.unique()):
 
     color = plt.cm.viridis((b) / len(bird_demo_df.Species.unique()))
 
+    # kept for the "_wdots" pass: one row per individual simulation run, as
+    # 1 - P to match the plotted quantity
+    panels[b] = (ax, x, 1 - runs_df.to_numpy().T, bird)
+
     ax.fill_between(x, min_y, max_y, color=color, alpha=0.4)
     
     ax.set_xlim(x[runs_df.mean(axis=1).values > 0.0041].min(), 
@@ -77,4 +84,22 @@ for ax in axs.flatten()[num_sp:]:
 
 fig.tight_layout()
 save_figure(fig, "niel_lebreton_examples", subdir=FIG_SUBDIR)
+
+# --- "_wdots" variant: overlay every individual simulation run --------------
+# The shaded band is the min-max envelope of exactly these runs, so the runs are
+# drawn ON TOP of it (zorder 1.5) rather than buried underneath.  n is small
+# (11-42 per species) so every run is shown and none is subsampled.
+# Do NOT call tight_layout() again -- the n= labels sit inside the axes.
+for b in sorted(panels):
+    pax, px, curves, bird = panels[b]
+    _, n_tot, n_shown = _overlay.faint_curves(
+        pax, px, curves, cap=None, glyph=b,
+        zorder=1.5, color="#333333", alpha=0.45, lw=0.3)
+    # bottom-left: every curve starts at P(E)=1 on the left and falls to the
+    # right, so that corner is the only one clear in all 14 panels
+    _overlay.annotate_n_corner(pax, n_tot, n_shown, loc=(0.04, 0.05),
+                               va="bottom", fontsize=6)
+    print(f"{bird} : n_runs={n_tot}")
+
+save_figure(fig, "niel_lebreton_examples" + _overlay.SUFFIX, subdir=FIG_SUBDIR)
 plt.show()

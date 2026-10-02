@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 import _curve_fit
 from _figure_io import save_figure
+import _overlay
 
 data_path = Path("..\\results\\simulation_results\\results_main")
 FIG_SUBDIR = "uncertainty"
@@ -115,6 +116,8 @@ models = [  "LogGrowthA",
 
 fig, axs = plt.subplots(2,2, figsize=(7, 6))
 
+panels = {}
+
 for m, model in enumerate(models):
 
     n_bins = 10
@@ -176,7 +179,36 @@ for m, model in enumerate(models):
         ]
     ax.legend(handles=legend_patch, fontsize=10)
 
+    panels[m] = (ax, bin_centers, [len(b) for b in binned_data], legend_patch)
+
 fig.tight_layout()
 save_figure(fig, "uncertainty_percentage_distribution", subdir=FIG_SUBDIR)
+
+# --- "_wdots" variant: per-bin n for the raw point cloud --------------------
+# Every individual value is ALREADY plotted as the steelblue scatter above, so
+# nothing is added here; what was missing is the sample size behind each box.
+# The scatters are rasterized so the vector file stays workable (the all-vector
+# version is ~14 MB).  boxplot(patch_artist=True) puts its boxes in ax.patches
+# and its whiskers in ax.lines, so ax.collections holds ONLY those scatters.
+# use_raster_dpi() is required because save_figure() does not pass dpi to the
+# PDF.  Do NOT call tight_layout() again.
+_overlay.use_raster_dpi()
+for m, model in enumerate(models):
+    pax, centres, bin_ns, patch = panels[m]
+    for coll in pax.collections:
+        coll.set_rasterized(True)
+    # ten bins across a ~3.4 inch panel leaves ~8.6 mm each, so the counts have
+    # to be set vertically.  No data falls below zero, so drop the lower limit
+    # to open up a clear band for them rather than running them over the boxes.
+    pax.set_ylim(-3.2, 13)
+    # the original legend uses loc="best", which relocates into that new band
+    # once the limits change -- pin it where it sits in the original
+    pax.legend(handles=patch, fontsize=10, loc="upper right")
+    for centre, n_bin in zip(centres, bin_ns):
+        _overlay.annotate_n(pax, centre, n_bin, fontsize=5, rotation=90)
+    print(f"{model}: total n={sum(bin_ns)}, per-bin {bin_ns}")
+
+save_figure(fig, "uncertainty_percentage_distribution" + _overlay.SUFFIX,
+            subdir=FIG_SUBDIR)
 
 # plt.show()

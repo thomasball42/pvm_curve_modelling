@@ -3,68 +3,94 @@
 Created on Wed Apr 16 15:08:18 2025
 
 @author: Thomas Ball
+
+Produces the per-model comparison of fit quality between the modified and the
+standard (unmodified) Gompertz curve: the distribution of R2 differences (left)
+against the inflection point of the fitted curve (right).
+
+Run from the pvm_curve_modelling directory, as with the other plot scripts.
 """
 
-import os
+import sys
 import pandas as pd
 import numpy as np
 
 import matplotlib.pyplot as plt
 
-# 
-model_name = "A"
-df_basic_path = f"..\\results\data_fits\\data_fits_{model_name}_basic_gompertz.csv"
-df_mod_path = f"..\\results\\data_fits\\data_fits_{model_name}.csv"
+from pathlib import Path
+# this script sits two levels below the package root
+_root = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_root))
+# _overlay lives alongside the figure scripts, which are not on the path when
+# this script is run from its own directory
+sys.path.insert(0, str(_root / "plot_scripts"))
+from _figure_io import save_figure
+import _overlay
 
-df_basic = pd.read_csv(df_basic_path, index_col =0)
-df_mod = pd.read_csv(df_mod_path, index_col = 0)
+FIG_SUBDIR = "stand_vs_mod_gompertz"
 
-df = pd.DataFrame()
+# dir that the main data fits are in
+data_fits_path = Path("..", "results", "data_fits", "data_fits_main")
 
+models = ["A", "B", "C", "D"]
 var = "R2"
 
-mod_min = df_mod.R2.min()
+for m, model_name in enumerate(models):
 
-basic_outside_range = df_basic[df_basic.R2 < mod_min]
-perc_outside_range = len(basic_outside_range) / len(df_basic)
+    df_bas = pd.read_csv(
+        data_fits_path / f"data_fits_{model_name}_basic_gompertz.csv", index_col=0)
+    df_mod = pd.read_csv(
+        data_fits_path / f"data_fits_model_{model_name}.csv", index_col=0)
 
-df["QSD"] = df_basic.QSD
-df["RMAX"] = df_basic.RMAX
-df["QREV"] = df_basic.QREV
-df["SA"] = df_basic.SA
+    # Join on runName rather than on position: model A has 255 basic fits but
+    # only 254 modified ones, so assigning the columns across by index silently
+    # paired up mismatched runs.
+    df = df_bas.merge(df_mod, on="runName", suffixes=("_bas", "_mod"))
 
-df["MAX_Y"] = df_basic.MAX_Y
-df["inflection"] = df_basic.dPdK_tp
-df["k10"] = df_basic.k90
+    mod_min = df_mod[var].min()
+    perc_outside_range = (df_bas[var] < mod_min).mean()
 
-df[f"basic_{var}"] = df_basic[var]
-df[f"mod_{var}"] = df_mod[var]
-df[f"{var}_diff"] = df[f"mod_{var}"] - df[f"basic_{var}"]
-df[f"{var}_perc_diff"] = df[f"mod_{var}"] / df[f"basic_{var}"]
+    # MAX_Y is taken from the basic fits, as before
+    df = df[df.MAX_Y_bas > 0.9999]
 
-# print(model_name, df_basic[df_basic.MAX_Y == 1].R2.min())
+    df[f"{var}_diff"] = df[f"{var}_mod"] - df[f"{var}_bas"]
+    df["inflection"] = df["dPdK_tp_bas"]
 
-MEAN_var_diff = df[f"{var}_diff"].mean()
+    dat = df[f"{var}_diff"].to_numpy()
+    dat = dat[~np.isnan(dat)]
 
-fig, axs = plt.subplots(1, 2, gridspec_kw={'width_ratios': [0.8, 1.8]}, 
-                        sharey=True)
-# fig, axs = plt.subplots()
-df = df[df.MAX_Y > 0.9999]
+    print(f"Model {model_name}: merged {len(df_bas.merge(df_mod, on='runName'))} runs, "
+          f"{len(df)} after MAX_Y filter, {len(dat)} with non-NaN {var} difference; "
+          f"min modified {var}={mod_min:.4f}, "
+          f"{100 * perc_outside_range:.1f}% of basic fits fall below it; "
+          f"mean difference={np.mean(dat):.4f}")
 
-dat = df[f"{var}_diff"]
-dat = dat[~np.isnan(dat)]
+    fig, axs = plt.subplots(1, 2, gridspec_kw={'width_ratios': [0.8, 1.8]},
+                            sharey=True)
 
-dat2 = df.inflection
-# dat2 = df.k10
-axs[0].boxplot(dat)
+    axs[0].boxplot(dat)
+    axs[0].set_xticks([])
+    sc = axs[1].scatter(df["inflection"], df[f"{var}_diff"],
+                        color="k", alpha=0.4, label=f"Model {model_name}")
+    axs[0].set_ylabel(f"Absolute difference in {var}")
+    axs[1].set_xlabel("Inflection point (K)")
+    axs[1].legend()
+    fig.tight_layout()
 
-# axs[0].hist(dat, bins = 200)
+    # name must not collide with standard_vs_mod_gompertz_r2, which is written
+    # into this same subdir by figure_standard_vs_modified_gompertz_r2.py
+    stem = f"standard_vs_mod_gompertz_{var}_diff_model_{model_name}"
+    save_figure(fig, stem, subdir=FIG_SUBDIR)
 
-axs[0].set_xticks([])
-axs[1].scatter(dat2, df[f"{var}_diff"], color = "k", alpha = 0.4, label = f"Model {model_name}")
-axs[0].set_ylabel(f"Absolute difference in {var}")
-axs[1].set_xlabel("Inflection point (K)")
-# axs[1].set_xlabel("$K_{10}$")
-axs[1].legend()
-fig.tight_layout()
+    # --- "_wdots" variant --------------------------------------------------
+    # The right panel already shows every individual point, so it needs only
+    # the n; the left panel is the box plot that needs the dot overlay.
+    # boxplot() here uses its default position of 1 and default width of 0.5.
+    _, n_tot, n_shown = _overlay.jittered_dots(axs[0], 1, dat, width=0.5, glyph=m)
+    _overlay.annotate_n(axs[0], 1, n_tot, n_shown)
+    sc.set_label(f"Model {model_name} (n={n_tot:,})")
+    axs[1].legend()
+    print(f"  overlay: n={n_tot}, shown={n_shown}")
 
+    save_figure(fig, stem + _overlay.SUFFIX, subdir=FIG_SUBDIR)
+    plt.close(fig)

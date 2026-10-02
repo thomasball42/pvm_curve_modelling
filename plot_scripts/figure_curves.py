@@ -224,7 +224,7 @@ if plot_pspace:
 ax.legend()
 fig.set_size_inches(8, 4)
 fig.tight_layout()
-save_figure(fig, "curves", subdir=FIG_SUBDIR, main_fig=MAIN_FIG)
+save_figure(fig, "curves", subdir=FIG_SUBDIR, main_fig=MAIN_FIG, svg=True)
 
 
 

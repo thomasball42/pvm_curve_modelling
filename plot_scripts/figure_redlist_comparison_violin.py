@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from other_scripts import process_mammal_data
 import _curve_fit
 from _figure_io import save_figure
+import _overlay
 
 
 model_names = ["model_A", "model_B", "model_C", "model_D"]
@@ -205,4 +206,31 @@ ax.legend(
 
 fig.tight_layout()
 save_figure(fig, "redlist_comparison_violin_vs_redlist", subdir=FIG_SUBDIR, bbox_inches="tight")
+
+# --- "_wdots" variant: overlay the individual pooled model values -----------
+# The x axis is log base 2 and the violin widths are given in x-data units (see
+# above), so the jitter has to be multiplicative rather than additive.
+# zorder 0.5 puts the dots under the existing ladder: violin bodies (~1) <
+# Red List quantile markers (5) < threshold diamond (6) < median/max (7).
+# The n= counts go into the x tick labels rather than inside the axes: a large
+# share of the values are exactly zero so the bottom of the plot is taken up by
+# that pile-up, the top-left is occupied by the CR maximum and the Red List
+# markers, and the top-right by the legend.
+# Do NOT call tight_layout() again.
+n_by_tc = {}
+for i, tc in enumerate(criteria_order):
+    vals = pooled_vals_by_tc[tc]
+    _, n_tot, n_shown = _overlay.jittered_dots(
+        ax, violin_positions[i], vals, width=violin_widths[i],
+        log_x=True, glyph=i)
+    n_by_tc[tc] = (n_tot, n_shown)
+    frac_zero = float((vals == 0).mean())
+    print(f"{tc} : n={n_tot}, shown={n_shown}, "
+          f"exactly zero={frac_zero:.3f} ({int((vals == 0).sum())} of {n_tot})")
+
+ax.set_xticklabels([f"{tc}\n({thresholds[tc]:,})\n{_overlay.n_text(*n_by_tc[tc])}"
+                    for tc in criteria_order])
+
+save_figure(fig, "redlist_comparison_violin_vs_redlist" + _overlay.SUFFIX,
+            subdir=FIG_SUBDIR, bbox_inches="tight")
 plt.show()

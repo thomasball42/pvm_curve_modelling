@@ -12,6 +12,7 @@ from other_scripts import process_mammal_data
 import _curve_fit
 import _analysis_utils
 from _figure_io import save_figure
+import _overlay
 
 data_fits_path = Path("..", "results", "data_fits", "data_fits_main")
 FIG_SUBDIR = "stand_vs_mod_gompertz"
@@ -86,6 +87,11 @@ files = data_fits_path.glob("*.csv")
 # save_figure(fig, "standard_vs_mod_gompertz_PE", subdir=FIG_SUBDIR)
 # plt.show()
 
+# panels kept for the "_wdots" passes: the individual per-run curves that
+# each mean +/- SD band summarises
+panels_gross = {}
+panels_abs = {}
+
 # ── Second figure: % difference vs normalised x (clipped to y in (0,1)) ──────
 fig2, axs2 = plt.subplots(2, 2, figsize=(8, 6),
                            sharey="row",
@@ -159,8 +165,31 @@ for m, model in enumerate(models):
     legend_patch = [Patch(facecolor="white", alpha=0.0, label=f"Model {model} (n = {len(perc_diffs_norm)})")]
     ax.legend(handles=legend_patch, fontsize=10)
 
+    panels_gross[m] = (ax, perc_diffs_norm, legend_patch[0])
+
 fig2.tight_layout()
 save_figure(fig2, "gross_standard_vs_mod_gompertz_PE_norm_K", subdir=FIG_SUBDIR)
+
+# --- "_wdots" variant: overlay the individual per-run curves ----------------
+# The band is the mean +/- 1 SD of exactly these curves, so they are drawn ON
+# TOP of it (zorder 1.5) rather than buried underneath.  Capped at 150 curves
+# per panel and rasterized to keep the vector file workable; use_raster_dpi()
+# is required because save_figure() does not pass dpi to the PDF.
+# Do NOT call tight_layout() again -- n goes into the existing legend.
+_overlay.use_raster_dpi()
+for m, model in enumerate(models):
+    if m not in panels_gross:
+        continue
+    pax, curves, patch = panels_gross[m]
+    _, n_tot, n_shown = _overlay.faint_curves(
+        pax, x_norm_grid, curves, cap=150, glyph=m,
+        zorder=1.5, color="#404040", alpha=0.16, lw=0.35, rasterized=True)
+    patch.set_label(f"Model {model} (n = {n_tot}; {n_shown} curves shown)")
+    pax.legend(handles=[patch], fontsize=10)
+    off = _overlay.count_clipped_curves(pax, curves)
+    print(f"Model {model}: n={n_tot}, shown={n_shown}, curves leaving panel={off}")
+
+save_figure(fig2, "gross_standard_vs_mod_gompertz_PE_norm_K" + _overlay.SUFFIX, subdir=FIG_SUBDIR)
 plt.show()
 
 fig2, axs2 = plt.subplots(2, 2, figsize=(8, 6),
@@ -235,6 +264,29 @@ for m, model in enumerate(models):
     legend_patch = [Patch(facecolor="white", alpha=0.0, label=f"Model {model} (n = {len(perc_diffs_norm)})")]
     ax.legend(handles=legend_patch, fontsize=10)
 
+    panels_abs[m] = (ax, perc_diffs_norm, legend_patch[0])
+
 fig2.tight_layout()
 save_figure(fig2, "standard_vs_mod_gompertz_PE_norm_K", subdir=FIG_SUBDIR)
+
+# --- "_wdots" variant: overlay the individual per-run curves ----------------
+# The band is the mean +/- 1 SD of exactly these curves, so they are drawn ON
+# TOP of it (zorder 1.5) rather than buried underneath.  Capped at 150 curves
+# per panel and rasterized to keep the vector file workable; use_raster_dpi()
+# is required because save_figure() does not pass dpi to the PDF.
+# Do NOT call tight_layout() again -- n goes into the existing legend.
+_overlay.use_raster_dpi()
+for m, model in enumerate(models):
+    if m not in panels_abs:
+        continue
+    pax, curves, patch = panels_abs[m]
+    _, n_tot, n_shown = _overlay.faint_curves(
+        pax, x_norm_grid, curves, cap=150, glyph=m,
+        zorder=1.5, color="#404040", alpha=0.16, lw=0.35, rasterized=True)
+    patch.set_label(f"Model {model} (n = {n_tot}; {n_shown} curves shown)")
+    pax.legend(handles=[patch], fontsize=10)
+    off = _overlay.count_clipped_curves(pax, curves)
+    print(f"Model {model}: n={n_tot}, shown={n_shown}, curves leaving panel={off}")
+
+save_figure(fig2, "standard_vs_mod_gompertz_PE_norm_K" + _overlay.SUFFIX, subdir=FIG_SUBDIR)
 plt.show()

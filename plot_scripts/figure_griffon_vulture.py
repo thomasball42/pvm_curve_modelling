@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import _analysis_utils
 import _curve_fit
 from _figure_io import save_figure
+import _overlay
 
 data_path = Path("..\\results\\simulation_results\\results_griffon_vulture")
 FIG_SUBDIR = "griffon_vulture"
@@ -21,6 +22,8 @@ for path, subdirs, files in os.walk(data_path):
         list_of_files.append(os.path.join(path, name))
 
 fig, axs = plt.subplots(1, 3, figsize=(12, 5), sharey=True)
+
+bands = []
 
 for __, upsil_filt in enumerate(["upsil0.0", "upsil0.1", "upsil0.2"]):
 
@@ -89,8 +92,11 @@ for __, upsil_filt in enumerate(["upsil0.0", "upsil0.1", "upsil0.2"]):
         # label = f"$\\sigma$={qsd_val}, $\\theta={theta}$, $\\upsilon={upsil}$, $q_{{rev}}={qrev}$, R2={_analysis_utils.format_R2_str(fit_result['R2'])}"
         label = f"$\\sigma$={qsd_val}, $\\theta={theta}$, R2={_analysis_utils.format_R2_str(fit_result['R2'])}"
 
-        ax.fill_between(x, min_y, max_y, color=color, alpha=0.4, label=label)
+        fb = ax.fill_between(x, min_y, max_y, color=color, alpha=0.4, label=label)
         ax.plot(x, mean_y, color=color, linewidth=1.5)
+
+        # kept for the "_wdots" pass: the individual runs this band spans
+        bands.append((ax, x, 1 - runs_df.to_numpy().T, color, label, fb))
 
         _analysis_utils.ax_log2_scale(ax)
         
@@ -101,4 +107,21 @@ for __, upsil_filt in enumerate(["upsil0.0", "upsil0.1", "upsil0.2"]):
     
 fig.tight_layout()
 save_figure(fig, "griffon_vulture_P_curves", subdir=FIG_SUBDIR)
+
+# --- "_wdots" variant: overlay the individual runs bounding each band -------
+# Each band spans just TWO runs, so the shaded region is not a distribution --
+# it is bounded exactly by these two curves, with the solid line their mean.
+# They are drawn dashed, on top of the band, in the band's own colour.
+# Do NOT call tight_layout() again.
+for g, (bax, bx, curves, col, lab, fb) in enumerate(bands):
+    _, n_tot, n_shown = _overlay.faint_curves(
+        bax, bx, curves, cap=None, glyph=g,
+        zorder=1.5, color=col, alpha=0.95, lw=0.6, linestyle=(0, (2.5, 1.5)))
+    fb.set_label(f"{lab}, n={n_tot}")
+    print(f"band {g}: {lab} -> n={n_tot}")
+
+for bax in axs.flatten():
+    bax.legend()
+
+save_figure(fig, "griffon_vulture_P_curves" + _overlay.SUFFIX, subdir=FIG_SUBDIR)
 plt.show()

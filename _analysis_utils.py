@@ -230,6 +230,9 @@ def plot_curve_fit(ax, x, y, func, params, R2, runName, scale_1_0=False, alpha =
     
     # Plot fitted curve
     xff = np.geomspace(x.min(), x.max(), num=100000)
+    # NB: this reads back the colour of the scatter drawn just above, and so
+    # relies on nothing else being added to ax.collections in between.  Keep
+    # these two statements adjacent.
     scatter_color = ax.collections[-1].get_facecolor()
     ax.plot(xff, 1 - func(xff, *params), color=scatter_color, label=label)
     
